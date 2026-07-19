@@ -1,0 +1,21 @@
+[project]
+name = "voice-xp-bot"
+version = "0.1.0"
+description = "Bot de Discord que dá XP por tempo em call e por mensagens."
+requires-python = ">=3.12"
+dependencies = [
+    "discord-py>=2.7,<3",
+    "pillow>=10.4",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+testpaths = ["tests"]

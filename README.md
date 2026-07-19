@@ -118,6 +118,21 @@ src/
 └── utils/          # formatação e checagem de permissão
 ```
 
+## Testes
+
+Suíte de testes com `pytest` cobrindo o core de regras de negócio (curva de
+nível, `GuildConfig` e migração do formato legado, `XpService`,
+`RewardService`, repositórios). Roda contra um banco SQLite em memória, sem
+tocar no `clown.db` real.
+
+```bash
+uv sync                # instala dependências (produção + dev) num .venv
+uv run pytest -q
+```
+
+Sem `uv`, dá pra usar `pip install -r requirements.txt pytest pytest-asyncio`
+e rodar `pytest` normalmente a partir da raiz do projeto.
+
 ## Banco de dados
 
 SQLite puro, num arquivo `clown.db` na raiz (o modo WAL gera os arquivos
