@@ -1,11 +1,18 @@
 """XpService: multiplicadores e crédito de XP/minutos (services/xp_service.py)."""
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 from conftest import FakeGuild, FakeMember, FakeRole, FakeVoiceChannel
 
+from database.connection import Database
 from database.stats_repo import StatsRepository
 from models.guild_config import GuildConfig, StreakBonus
 from services.xp_service import XpService
+
+
+def _yesterday() -> str:
+    return (date.today() - timedelta(days=1)).isoformat()
 
 
 def make_cfg(**overrides) -> GuildConfig:
@@ -177,3 +184,50 @@ def test_award_message_xp_sem_xp_retorna_none(stats_repo: StatsRepository):
     result = svc.award_message_xp(cfg, member)
 
     assert result is None
+
+
+# ── Bônus de streak vale no dia do marco (não no dia seguinte) ──
+def test_award_minutes_aplica_bonus_de_streak_no_proprio_dia_do_marco(
+    stats_repo: StatsRepository, db: Database
+):
+    guild = FakeGuild()
+    member = FakeMember(guild)
+    channel = FakeVoiceChannel(members=[member])
+    cfg = make_cfg(xp_per_minute=10, streak_bonuses=[StreakBonus(7, 2.0)])
+    svc = XpService(stats_repo)
+
+    # Membro já tem streak de 6 dias, ativo ontem: hoje é o 7º dia (marco).
+    stats_repo.add_xp(guild_id=1, user_id=member.id, xp=0, seconds=0)
+    db.conn.execute(
+        "UPDATE voice_stats SET streak_current = 6, streak_last_date = ? "
+        "WHERE guild_id = '1' AND user_id = ?",
+        (_yesterday(), str(member.id)),
+    )
+    db.conn.commit()
+
+    result = svc.award_minutes(cfg, member, channel, minutes=1)
+
+    assert result.xp == 20  # 10 xp/min * 2.0 (bônus já vale hoje, no marco)
+    assert result.stats.streak_current == 7  # streak também foi persistido
+
+
+def test_award_message_xp_aplica_bonus_de_streak_no_proprio_dia_do_marco(
+    stats_repo: StatsRepository, db: Database
+):
+    guild = FakeGuild()
+    member = FakeMember(guild)
+    cfg = make_cfg(message_xp_amount=10, streak_bonuses=[StreakBonus(7, 2.0)])
+    svc = XpService(stats_repo)
+
+    stats_repo.add_xp(guild_id=1, user_id=member.id, xp=0, seconds=0)
+    db.conn.execute(
+        "UPDATE voice_stats SET streak_current = 6, streak_last_date = ? "
+        "WHERE guild_id = '1' AND user_id = ?",
+        (_yesterday(), str(member.id)),
+    )
+    db.conn.commit()
+
+    result = svc.award_message_xp(cfg, member)
+
+    assert result.xp == 20  # 10 * 2.0
+    assert result.stats.streak_current == 7

@@ -101,15 +101,24 @@ class StatsRepository:
         )
         self._db.conn.commit()
 
+    def projected_streak(self, stats: MemberStats) -> int:
+        """Streak que valeria HOJE se a atividade fosse registrada agora (sem gravar).
+
+        Usado para calcular o multiplicador de streak no mesmo dia em que um
+        marco (7/15/30/60) é atingido, em vez de só no dia seguinte.
+        """
+        today = _today()
+        if stats.streak_last_date == today:
+            return stats.streak_current
+        return stats.streak_current + 1 if stats.streak_last_date == _yesterday() else 1
+
     def register_streak_day(self, stats: MemberStats) -> MemberStats:
         """Registra atividade de hoje na sequência (chamar quando ganhar XP)."""
         today = _today()
         if stats.streak_last_date == today:
             return stats  # já contou hoje
 
-        stats.streak_current = (
-            stats.streak_current + 1 if stats.streak_last_date == _yesterday() else 1
-        )
+        stats.streak_current = self.projected_streak(stats)
         stats.streak_best = max(stats.streak_best, stats.streak_current)
         stats.streak_last_date = today
         self._db.conn.execute(

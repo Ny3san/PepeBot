@@ -85,7 +85,8 @@ class XpService:
         if minutes <= 0:
             return None
 
-        mult = self.total_multiplier(cfg, member, channel, stats.streak_current)
+        streak_days = self._stats.projected_streak(stats)
+        mult = self.total_multiplier(cfg, member, channel, streak_days)
         xp = round(cfg.xp_per_minute * mult * minutes)
         if cfg.daily_xp_cap > 0:
             xp = min(xp, max(0, cfg.daily_xp_cap - stats.daily_xp))
@@ -109,7 +110,7 @@ class XpService:
         stats = self._stats.get(cfg.guild_id, member.id)
 
         mult = self.role_multiplier(cfg, member)
-        mult *= cfg.streak_multiplier(stats.streak_current)
+        mult *= cfg.streak_multiplier(self._stats.projected_streak(stats))
         if cfg.double_xp_active():
             mult *= cfg.double_xp_multiplier
 
