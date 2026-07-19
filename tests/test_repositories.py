@@ -175,3 +175,33 @@ def test_get_usa_cache_em_memoria(config_repo: ConfigRepository, db: Database):
 
     # ainda vem do cache, não do banco (que já não tem mais a linha)
     assert config_repo.get(guild_id=5).xp_per_minute == 20
+
+
+def test_get_com_json_corrompido_cai_para_defaults_em_vez_de_derrubar_o_guild(
+    config_repo: ConfigRepository, db: Database
+):
+    db.conn.execute(
+        "INSERT INTO guild_config (guild_id, config) VALUES (?, ?)", ("42", "{isso não é json")
+    )
+    db.conn.commit()
+
+    cfg = config_repo.get(guild_id=42)
+
+    assert cfg.guild_id == 42
+    assert cfg.enabled is False  # defaults, sem propagar a exceção
+
+
+def test_get_com_config_estruturalmente_invalida_cai_para_defaults(
+    config_repo: ConfigRepository, db: Database
+):
+    # JSON válido, mas com um formato que quebra a reconstrução do dataclass
+    db.conn.execute(
+        "INSERT INTO guild_config (guild_id, config) VALUES (?, ?)",
+        ("42", '{"role_rewards": "isso deveria ser uma lista"}'),
+    )
+    db.conn.commit()
+
+    cfg = config_repo.get(guild_id=42)
+
+    assert cfg.guild_id == 42
+    assert cfg.role_rewards == []
