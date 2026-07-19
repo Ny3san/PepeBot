@@ -1,6 +1,8 @@
 """Seções do painel: Recompensas e edição individual de recompensa."""
 from __future__ import annotations
 
+import asyncio
+import logging
 import re
 from typing import TYPE_CHECKING
 
@@ -15,9 +17,31 @@ from views.modals import ConfigModal, Field
 if TYPE_CHECKING:
     from bot import VoiceXPBot
 
+log = logging.getLogger(__name__)
+
 # Extrai o nível do nome do cargo: "Lvl - 50", "「Level 50」", "nível 50 ⭐"...
 # Usado apenas para PRÉ-PREENCHER o modal — o admin sempre confirma o valor.
 _LEVEL_ROLE_RE = re.compile(r"(?i)(?:lvl|level|n[ií]vel)\s*[-–—:.]*\s*(\d+)")
+
+
+def _schedule_reward_sync(bot: "VoiceXPBot", guild: discord.Guild, cfg: GuildConfig) -> None:
+    """Sincroniza os cargos de recompensa de até 500 membros em background.
+
+    Cada membro pode disparar 1-2 chamadas HTTP (add/remove cargo); rodar
+    isso sequencialmente dentro do callback da interação seguraria a
+    resposta do modal por muito tempo em servidores grandes.
+    """
+
+    async def _run() -> None:
+        try:
+            for stats in bot.stats.top(cfg.guild_id, 500):
+                member = guild.get_member(stats.user_id)
+                if member and not member.bot:
+                    await bot.rewards.check_member(member, cfg, stats)
+        except Exception:
+            log.exception("Falha ao sincronizar recompensas em background (guild %s)", cfg.guild_id)
+
+    asyncio.create_task(_run())
 
 
 def _role_name(bot: "VoiceXPBot", guild_id: int, role_id: int) -> str:
@@ -155,11 +179,8 @@ def build_rewards(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
             await _sort_level_roles(inner.guild, cfg)  # nível maior fica acima na hierarquia
             await refresh(bot, inner, "recompensas")
 
-            # Entrega imediata a quem já atingiu o nível
-            for stats in bot.stats.top(cfg.guild_id, 500):
-                member = inner.guild.get_member(stats.user_id)
-                if member and not member.bot:
-                    await bot.rewards.check_member(member, cfg, stats)
+            # Entrega a quem já atingiu o nível, em background (não segura a interação)
+            _schedule_reward_sync(bot, inner.guild, cfg)
 
         await interaction.response.send_modal(
             ConfigModal(
@@ -271,12 +292,9 @@ def _requirements_modal(bot: "VoiceXPBot", guild_id: int, role_id: int, *, is_ne
             await _sort_level_roles(interaction.guild, cfg)  # mantém a hierarquia por nível
         await refresh(bot, interaction, f"reward:{role_id}")
 
-        # Entrega imediata a quem já cumpre o requisito
+        # Entrega a quem já cumpre o requisito, em background (não segura a interação)
         if interaction.guild:
-            for stats in bot.stats.top(cfg.guild_id, 500):
-                member = interaction.guild.get_member(stats.user_id)
-                if member and not member.bot:
-                    await bot.rewards.check_member(member, cfg, stats)
+            _schedule_reward_sync(bot, interaction.guild, cfg)
 
     return ConfigModal(
         "Requisitos da recompensa (0 = ignorar)",
