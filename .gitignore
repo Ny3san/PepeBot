@@ -1,0 +1,25 @@
+# Segredos / ambiente
+.env
+
+# Banco de dados (SQLite + WAL)
+clown.db
+clown.db-shm
+clown.db-wal
+backup-db-local/
+
+# Ambiente virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Ferramentas locais
+.codegraph/
+.claude/settings.local.json
+
+# Credenciais de deploy (host/usuário SFTP)
+.vscode/sftp.json
+src/.vscode/sftp.json
