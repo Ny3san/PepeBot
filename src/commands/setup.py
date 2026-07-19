@@ -31,7 +31,7 @@ class SetupCommand(commands.Cog):
     async def setup_cmd(self, interaction: discord.Interaction) -> None:
         assert interaction.guild_id is not None
         cfg = self.bot.configs.get(interaction.guild_id)
-        if not isinstance(interaction.user, discord.Member) or not can_manage(cfg, interaction.user):
+        if not isinstance(interaction.user, discord.Member) or not can_manage(self.bot, cfg, interaction.user):
             await interaction.response.send_message(view=no_permission_view(interaction.user), ephemeral=True)
             return
 
@@ -71,7 +71,7 @@ class SetupCommand(commands.Cog):
             return
 
         cfg = self.bot.configs.get(interaction.guild_id)
-        if not isinstance(interaction.user, discord.Member) or not can_manage(cfg, interaction.user):
+        if not isinstance(interaction.user, discord.Member) or not can_manage(self.bot, cfg, interaction.user):
             await interaction.response.send_message(view=no_permission_view(interaction.user), ephemeral=True)
             return
 

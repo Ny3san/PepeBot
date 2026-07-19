@@ -1,7 +1,8 @@
 """Constantes globais do bot."""
 
-# IDs de bypass (admin global: pula cargo, cargo autorizado e 2FA)
-BYPASS_USER_IDS = {1048415732368674906}
+# IDs de bypass (admin global: pula cargo, cargo autorizado e 2FA) — configurados
+# via variável de ambiente BYPASS_USER_IDS (ver config/settings.py), não aqui:
+# não deve ficar hardcoded no código-fonte. Uso é logado (utils/checks.py, views/twofa.py).
 
 # Identidade visual (minimalista, sem emojis)
 EMBED_COLOR = 0x2B2D31

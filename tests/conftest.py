@@ -25,8 +25,10 @@ class FakeRole:
 
 
 class FakeGuild:
-    def __init__(self, roles: list[FakeRole] | None = None) -> None:
+    def __init__(self, roles: list[FakeRole] | None = None, owner_id: int = 999, name: str = "guild-teste") -> None:
         self.id = 1
+        self.name = name
+        self.owner_id = owner_id
         self._roles = {r.id: r for r in (roles or [])}
 
     def get_role(self, role_id: int) -> FakeRole | None:
@@ -65,6 +67,18 @@ class FakeMember:
 class FakeVoiceChannel:
     def __init__(self, members: list[FakeMember] | None = None) -> None:
         self.members = members or []
+
+
+class FakeSettings:
+    def __init__(self, bypass_user_ids: frozenset[int] = frozenset()) -> None:
+        self.bypass_user_ids = bypass_user_ids
+
+
+class FakeBot:
+    """Duble mínimo de VoiceXPBot: só o que utils/checks.can_manage lê."""
+
+    def __init__(self, bypass_user_ids: frozenset[int] = frozenset()) -> None:
+        self.settings = FakeSettings(bypass_user_ids)
 
 
 @pytest.fixture

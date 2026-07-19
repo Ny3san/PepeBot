@@ -23,9 +23,14 @@ Antes disso, crie um `.env` na raiz:
 BOT_TOKEN=cole_o_token_aqui
 DEV_GUILD_ID=            # opcional: id do servidor de testes, sync na hora
 CLOWN_DB_PATH=           # opcional: onde salvar o banco (padrão: raiz)
+BYPASS_USER_IDS=         # opcional: IDs (separados por vírgula) com acesso admin total, em todo servidor
 ```
 
 `CLOWN_TOKEN` e `CLOWN_GUILD_ID` também funcionam como nomes alternativos.
+
+`BYPASS_USER_IDS` é um bypass administrativo global (ignora dono, cargo
+autorizado e 2FA) — cada uso é logado (`utils/checks.py`, `views/twofa.py`).
+Deixe vazio se não precisar disso.
 
 No Developer Portal, liga o **Server Members Intent** e o **Message Content
 Intent**, senão o bot não enxerga os membros nem as mensagens.

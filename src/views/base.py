@@ -136,7 +136,7 @@ class SectionView(ui.LayoutView):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         cfg = self.bot.configs.get(self.guild_id)
-        if isinstance(interaction.user, discord.Member) and can_manage(cfg, interaction.user):
+        if isinstance(interaction.user, discord.Member) and can_manage(self.bot, cfg, interaction.user):
             return True
         await interaction.response.send_message(view=no_permission_view(interaction.user), ephemeral=True)
         return False

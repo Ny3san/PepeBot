@@ -13,6 +13,11 @@ load_dotenv()
 class Settings:
     token: str
     dev_guild_id: int | None
+    bypass_user_ids: frozenset[int] = frozenset()
+
+
+def _parse_bypass_ids(raw: str) -> frozenset[int]:
+    return frozenset(int(v) for v in raw.split(",") if v.strip().isdigit())
 
 
 def load_settings() -> Settings:
@@ -23,4 +28,6 @@ def load_settings() -> Settings:
     raw_guild = os.getenv("DEV_GUILD_ID") or os.getenv("CLOWN_GUILD_ID") or ""
     dev_guild_id = int(raw_guild) if raw_guild.strip().isdigit() else None
 
-    return Settings(token=token, dev_guild_id=dev_guild_id)
+    bypass_user_ids = _parse_bypass_ids(os.getenv("BYPASS_USER_IDS", ""))
+
+    return Settings(token=token, dev_guild_id=dev_guild_id, bypass_user_ids=bypass_user_ids)

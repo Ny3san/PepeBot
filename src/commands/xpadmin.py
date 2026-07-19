@@ -21,7 +21,7 @@ class XpAdmin(commands.Cog):
     async def cog_check(self, ctx: commands.Context) -> bool:
         if ctx.guild is None or not isinstance(ctx.author, discord.Member):
             return False
-        return can_manage(self.bot.configs.get(ctx.guild.id), ctx.author)
+        return can_manage(self.bot, self.bot.configs.get(ctx.guild.id), ctx.author)
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
         if isinstance(error, commands.CheckFailure):

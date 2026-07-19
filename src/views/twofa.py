@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Awaitable, Callable
 import discord
 from discord import ui
 
-from config.defaults import BYPASS_USER_IDS, EMBED_COLOR
+from config.defaults import EMBED_COLOR
 from services.twofa_service import REQUEST_TTL_S
 
 if TYPE_CHECKING:
@@ -133,7 +133,13 @@ async def require_twofa(
     guild = interaction.guild
     assert guild is not None
 
-    if interaction.user.id in BYPASS_USER_IDS or interaction.user.id == guild.owner_id:
+    if interaction.user.id in bot.settings.bypass_user_ids:
+        log.warning(
+            "BYPASS_USER_IDS: %s (%s) usou o bypass de 2FA em %s (%s) — ação: %s",
+            interaction.user, interaction.user.id, guild.name, guild.id, action_label,
+        )
+        return True
+    if interaction.user.id == guild.owner_id:
         return True
 
     # Segura a interação do painel: quem edita a mensagem depois é a `action`
