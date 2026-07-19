@@ -74,11 +74,29 @@ class FakeSettings:
         self.bypass_user_ids = bypass_user_ids
 
 
-class FakeBot:
-    """Duble mínimo de VoiceXPBot: só o que utils/checks.can_manage lê."""
+class FakeConfigRepo:
+    """Duble de ConfigRepository: guarda uma única GuildConfig em memória."""
 
-    def __init__(self, bypass_user_ids: frozenset[int] = frozenset()) -> None:
+    def __init__(self, cfg) -> None:
+        self._cfg = cfg
+
+    def get(self, guild_id: int):
+        return self._cfg
+
+    def save(self, cfg) -> None:
+        self._cfg = cfg
+
+
+class FakeBot:
+    """Duble mínimo de VoiceXPBot: só o que os módulos de views/ e checks.py leem."""
+
+    def __init__(self, bypass_user_ids: frozenset[int] = frozenset(), cfg=None, guild: FakeGuild | None = None) -> None:
         self.settings = FakeSettings(bypass_user_ids)
+        self.configs = FakeConfigRepo(cfg) if cfg is not None else None
+        self._guild = guild
+
+    def get_guild(self, guild_id: int):
+        return self._guild
 
 
 @pytest.fixture
