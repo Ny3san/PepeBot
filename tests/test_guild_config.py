@@ -32,9 +32,22 @@ def test_from_dict_formato_atual_aplica_campos():
 
 def test_to_dict_from_dict_roundtrip_preserva_valores():
     cfg = GuildConfig(guild_id=7, xp_per_minute=42, role_multipliers={5: 2.0})
-    cfg.role_rewards.append(RoleReward(role_id=1, required_xp=100, remove_previous=True))
+    cfg.role_rewards.append(RoleReward(role_id=1, required_xp=100))
     restored = GuildConfig.from_dict(7, cfg.to_dict())
     assert restored == cfg
+
+
+def test_from_dict_ignora_campo_remove_previous_removido_do_modelo():
+    """Configs já salvas no banco antes da remoção do campo morto
+    `remove_previous` (nunca lido por RewardService) ainda têm essa chave
+    no JSON de role_rewards — o parser não pode quebrar por causa dela."""
+    raw = {
+        "role_rewards": [
+            {"role_id": 1, "required_xp": 50, "remove_previous": True},
+        ]
+    }
+    cfg = GuildConfig.from_dict(1, raw)
+    assert cfg.role_rewards == [RoleReward(role_id=1, required_xp=50)]
 
 
 def test_from_dict_detecta_e_migra_formato_legado_camelcase():

@@ -41,7 +41,6 @@ class StatsRepository:
         )
 
         today = _today()
-        dirty = False
 
         if stats.daily_date != today:
             stats.daily_xp = 0
@@ -52,7 +51,6 @@ class StatsRepository:
                 "WHERE guild_id = ? AND user_id = ?",
                 (today, *key),
             )
-            dirty = True
 
         # Perdeu a sequência: último XP não foi hoje nem ontem
         if stats.streak_current > 0 and stats.streak_last_date not in (today, _yesterday()):
@@ -61,7 +59,6 @@ class StatsRepository:
                 "UPDATE voice_stats SET streak_current = 0 WHERE guild_id = ? AND user_id = ?",
                 key,
             )
-            dirty = True
 
         # Commit incondicional: o INSERT OR IGNORE acima abre uma transação
         # mesmo em leituras; deixá-la pendurada segura o lock do WAL.

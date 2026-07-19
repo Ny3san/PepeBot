@@ -35,11 +35,13 @@ CREATE INDEX IF NOT EXISTS idx_stats_period ON voice_stats (guild_id, period_xp 
 CREATE INDEX IF NOT EXISTS idx_stats_total  ON voice_stats (guild_id, total_xp DESC);
 """
 
-# Colunas adicionadas após a versão inicial (migração idempotente)
-_MIGRATIONS = [
-    "ALTER TABLE voice_stats ADD COLUMN streak_current INTEGER NOT NULL DEFAULT 0",
-    "ALTER TABLE voice_stats ADD COLUMN streak_best INTEGER NOT NULL DEFAULT 0",
-    "ALTER TABLE voice_stats ADD COLUMN streak_last_date TEXT NOT NULL DEFAULT ''",
+# Colunas adicionadas após a versão inicial (migração idempotente).
+# Cada entrada é (tabela, coluna, DDL) para poder checar via PRAGMA table_info
+# se a coluna já existe antes de tentar o ALTER TABLE.
+_MIGRATIONS: list[tuple[str, str, str]] = [
+    ("voice_stats", "streak_current", "ALTER TABLE voice_stats ADD COLUMN streak_current INTEGER NOT NULL DEFAULT 0"),
+    ("voice_stats", "streak_best", "ALTER TABLE voice_stats ADD COLUMN streak_best INTEGER NOT NULL DEFAULT 0"),
+    ("voice_stats", "streak_last_date", "ALTER TABLE voice_stats ADD COLUMN streak_last_date TEXT NOT NULL DEFAULT ''"),
 ]
 
 
@@ -66,11 +68,11 @@ class Database:
         log.info("Banco de dados pronto em %s", path)
 
     def _migrate(self) -> None:
-        for ddl in _MIGRATIONS:
-            try:
-                self.conn.execute(ddl)
-            except sqlite3.OperationalError:
-                pass  # coluna já existe
+        for table, column, ddl in _MIGRATIONS:
+            existing = {row["name"] for row in self.conn.execute(f"PRAGMA table_info({table})")}
+            if column in existing:
+                continue  # já migrado, nada a fazer
+            self.conn.execute(ddl)
         self.conn.commit()
 
     def close(self) -> None:

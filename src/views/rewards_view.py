@@ -150,9 +150,7 @@ def build_rewards(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
                 )
                 return
 
-            cfg.role_rewards.append(
-                RoleReward(role_id=role.id, required_level=level, remove_previous=True)
-            )
+            cfg.role_rewards.append(RoleReward(role_id=role.id, required_level=level))
             bot.configs.save(cfg)
             await _sort_level_roles(inner.guild, cfg)  # nível maior fica acima na hierarquia
             await refresh(bot, inner, "recompensas")
@@ -255,7 +253,7 @@ def _requirements_modal(bot: "VoiceXPBot", guild_id: int, role_id: int, *, is_ne
         role = guild.get_role(role_id) if guild else None
         match = _LEVEL_ROLE_RE.search(role.name) if role else None
         level_guess = min(1000, int(match.group(1))) if match else 0
-        reward = RoleReward(role_id=role_id, required_level=level_guess, remove_previous=True)
+        reward = RoleReward(role_id=role_id, required_level=level_guess)
 
     async def save(interaction: discord.Interaction, values: dict) -> None:
         if all(v <= 0 for v in values.values()):

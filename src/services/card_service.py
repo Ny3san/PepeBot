@@ -28,13 +28,18 @@ BRONZE = (205, 127, 80, 255)
 
 S = 2  # fator de supersampling
 
+# src/services/card_service.py -> raiz do projeto (clown/) -> assets/fonts
+_ASSETS_FONTS = Path(__file__).resolve().parents[2] / "assets" / "fonts"
+
 _FONT_BOLD = [
+    _ASSETS_FONTS / "DejaVuSans-Bold.ttf",       # embutida no repo: sempre disponível
     "C:/Windows/Fonts/seguisb.ttf",
     "C:/Windows/Fonts/segoeuib.ttf",
     "C:/Windows/Fonts/arialbd.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
 ]
 _FONT_REGULAR = [
+    _ASSETS_FONTS / "DejaVuSans.ttf",             # embutida no repo: sempre disponível
     "C:/Windows/Fonts/segoeui.ttf",
     "C:/Windows/Fonts/arial.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
@@ -44,7 +49,7 @@ _FONT_REGULAR = [
 def _font(size: int, bold: bool = False):
     for path in _FONT_BOLD if bold else _FONT_REGULAR:
         if Path(path).exists():
-            return ImageFont.truetype(path, size * S)
+            return ImageFont.truetype(str(path), size * S)
     return ImageFont.load_default(size * S)
 
 

@@ -7,7 +7,7 @@ versão JavaScript do bot, migrando-o de forma transparente.
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields
 from typing import Any
 
 
@@ -23,13 +23,15 @@ class RoleReward:
     required_xp: int = 0
     required_level: int = 0
     required_hours: float = 0.0
-    remove_previous: bool = False   # remove os cargos de recompensa anteriores
     message: str = ""               # mensagem personalizada ({user} {role} {level} {hours} {xp})
     channel_id: int | None = None   # canal da mensagem (fallback: canal de logs)
 
     def sort_key(self) -> tuple[float, int, int]:
         """Ordena recompensas da menor para a maior exigência."""
         return (self.required_hours, self.required_xp, self.required_level)
+
+
+_ROLE_REWARD_FIELDS = {f.name for f in fields(RoleReward)}
 
 
 @dataclass(slots=True)
@@ -135,7 +137,12 @@ class GuildConfig:
             if not hasattr(cfg, key) or key == "guild_id":
                 continue
             if key == "role_rewards":
-                value = [RoleReward(**r) for r in value]
+                # Filtra chaves desconhecidas: configs salvas antes de um campo
+                # ser removido do modelo (ex.: remove_previous) não podem quebrar o parser.
+                value = [
+                    RoleReward(**{k: v for k, v in r.items() if k in _ROLE_REWARD_FIELDS})
+                    for r in value
+                ]
             elif key == "streak_bonuses":
                 value = [StreakBonus(**b) for b in value]
             elif key == "role_multipliers":
