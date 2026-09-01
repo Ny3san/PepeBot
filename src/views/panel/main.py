@@ -51,7 +51,7 @@ def build_main(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
             "Settings", nav_callback(bot, "config"), custom_id=cid("nav", "config"), style=discord.ButtonStyle.primary, emoji=get_emoji("settings")
         ),
         button("Eventos", nav_callback(bot, "extras"), custom_id=cid("nav", "extras"), emoji=get_emoji("eventos")),
-        button("Permissões", twofa_gated(bot, "abrir a seção **Acesso**", open_acesso), custom_id=cid("nav", "acesso"), emoji=get_emoji("permissões")),
+        button("Permissões", twofa_gated(bot, "abrir a seção **Acesso**", open_acesso), custom_id=cid("nav", "acesso"), emoji=get_emoji("permissoes")),
     )
 
     async def apply(inner: discord.Interaction) -> None:
