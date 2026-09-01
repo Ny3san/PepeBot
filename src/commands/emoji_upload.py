@@ -8,6 +8,7 @@ import discord
 from discord.ext import commands
 
 from services.emoji_service import EmojiManager
+from utils.emoji_utils import reload_emoji_cache
 
 if TYPE_CHECKING:
     from bot import VoiceXPBot
@@ -42,6 +43,9 @@ async def emoji_upload(interaction: discord.Interaction[VoiceXPBot]) -> None:
         msg += f"\n{status} {name}: {result[:30]}"
 
     await interaction.followup.send(msg, ephemeral=True)
+
+    # Recarrega cache pra emojis aparecerem instantaneamente nos botões
+    reload_emoji_cache()
 
 
 async def setup(bot: VoiceXPBot) -> None:

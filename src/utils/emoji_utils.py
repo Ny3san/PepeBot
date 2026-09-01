@@ -18,6 +18,12 @@ def load_emoji_map() -> dict[str, str]:
 _emoji_cache = load_emoji_map()
 
 
+def reload_emoji_cache() -> None:
+    """Recarrega cache de emojis do arquivo."""
+    global _emoji_cache
+    _emoji_cache = load_emoji_map()
+
+
 def get_emoji(name: str) -> str | None:
     """Retorna emoji customizado por nome, ou None se não encontrado."""
     return _emoji_cache.get(name)
