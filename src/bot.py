@@ -3,6 +3,7 @@
 Bot de XP por tempo em call: tracking de voz, níveis, sequência,
 recompensas automáticas, ranking e painel de configuração.
 """
+
 from __future__ import annotations
 
 import logging
@@ -28,13 +29,14 @@ EXTENSIONS = [
     "commands.rank",
     "commands.xpadmin",
     "commands.setup",
+    "commands.emoji_upload",
 ]
 
 
 class VoiceXPBot(commands.Bot):
     def __init__(self, settings: Settings) -> None:
         intents = discord.Intents.default()
-        intents.members = True          # cargos e cache de membros
+        intents.members = True  # cargos e cache de membros
         intents.message_content = True  # comandos por prefixo "-"
 
         super().__init__(
@@ -75,9 +77,7 @@ class VoiceXPBot(commands.Bot):
             return
         await super().on_command_error(ctx, error)
 
-    async def on_app_command_error(
-        self, interaction: discord.Interaction, error: app_commands.AppCommandError
-    ) -> None:
+    async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
         """Rede de segurança global para slash commands (/xp, /rank, /setup, ...).
 
         Cada cog já trata os erros esperados no próprio callback; isto aqui
@@ -90,7 +90,11 @@ class VoiceXPBot(commands.Bot):
             log.warning("Interação de slash command já respondida por outra instância do bot.")
             return
 
-        log.exception("Erro não tratado num slash command (%s)", interaction.command.qualified_name if interaction.command else "?", exc_info=original)
+        log.exception(
+            "Erro não tratado num slash command (%s)",
+            interaction.command.qualified_name if interaction.command else "?",
+            exc_info=original,
+        )
 
         message = "Ocorreu um erro ao executar esse comando. Tente novamente."
         try:
@@ -108,7 +112,7 @@ class VoiceXPBot(commands.Bot):
 
 def main() -> None:
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARNING,
         format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )

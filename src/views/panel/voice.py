@@ -1,4 +1,5 @@
 """Seção: XP de Voz."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -7,15 +8,16 @@ import discord
 from discord import ui
 
 from models.guild_config import GuildConfig
-from views.panel._format import chan_list, yes_no
+from utils.emoji_utils import get_emoji
 from views.base import SectionView, button, channel_select, cid, nav_callback, refresh, toggle_callback
 from views.modals import ConfigModal, Field
+from views.panel._format import chan_list, yes_no
 
 if TYPE_CHECKING:
     from bot import VoiceXPBot
 
 
-def build_geral(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
+def build_geral(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
     body = (
         f"**Canais permitidos**\n{chan_list(cfg.allowed_channels)}\n"
         f"**Canais excluídos**\n{chan_list(cfg.excluded_channels)}\n\n"
@@ -27,9 +29,13 @@ def build_geral(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
 
     def voice_channels(key: str, placeholder: str) -> ui.ChannelSelect:
         select = channel_select(
-            guild, current=getattr(cfg, key), placeholder=placeholder,
-            channel_types=[discord.ChannelType.voice], custom_id=cid("geral", key),
-            min_values=0, max_values=15,
+            guild,
+            current=getattr(cfg, key),
+            placeholder=placeholder,
+            channel_types=[discord.ChannelType.voice],
+            custom_id=cid("geral", key),
+            min_values=0,
+            max_values=15,
         )
 
         async def cb(interaction: discord.Interaction) -> None:
@@ -66,8 +72,18 @@ def build_geral(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
 
     view.add_row(
         button("Editar XP e tempo mínimo", on_edit, custom_id=cid("geral", "edit")),
-        button(f"Mutado: {yes_no(cfg.allow_muted)}", toggle_callback(bot, cfg, "allow_muted", "geral"), custom_id=cid("geral", "muted")),
-        button(f"Ensurdecido: {yes_no(cfg.allow_deafened)}", toggle_callback(bot, cfg, "allow_deafened", "geral"), custom_id=cid("geral", "deaf")),
+        button(
+            f"Mutado: {yes_no(cfg.allow_muted)}",
+            toggle_callback(bot, cfg, "allow_muted", "geral"),
+            custom_id=cid("geral", "muted"),
+            emoji=get_emoji("mutado"),
+        ),
+        button(
+            f"Ensurdecido: {yes_no(cfg.allow_deafened)}",
+            toggle_callback(bot, cfg, "allow_deafened", "geral"),
+            custom_id=cid("geral", "deaf"),
+            emoji=get_emoji("ensurdecido"),
+        ),
     )
-    view.add_row(button("Voltar", nav_callback(bot, "main"), custom_id=cid("geral", "back")))
+    view.add_row(button("Voltar", nav_callback(bot, "main"), custom_id=cid("geral", "back"), emoji=get_emoji("voltar")))
     return view

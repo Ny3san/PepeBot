@@ -1,4 +1,5 @@
 """Seções do painel: Recompensas e edição individual de recompensa."""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,6 +12,7 @@ from discord import ui
 
 from config.defaults import RESET_LABELS
 from models.guild_config import GuildConfig, RoleReward
+from utils.emoji_utils import get_emoji
 from views.base import SectionView, button, channel_select, cid, nav_callback, refresh
 from views.modals import ConfigModal, Field
 
@@ -24,7 +26,7 @@ log = logging.getLogger(__name__)
 _LEVEL_ROLE_RE = re.compile(r"(?i)(?:lvl|level|n[ií]vel)\s*[-–—:.]*\s*(\d+)")
 
 
-def _schedule_reward_sync(bot: "VoiceXPBot", guild: discord.Guild, cfg: GuildConfig) -> None:
+def _schedule_reward_sync(bot: VoiceXPBot, guild: discord.Guild, cfg: GuildConfig) -> None:
     """Sincroniza os cargos de recompensa de até 500 membros em background.
 
     Cada membro pode disparar 1-2 chamadas HTTP (add/remove cargo); rodar
@@ -44,7 +46,7 @@ def _schedule_reward_sync(bot: "VoiceXPBot", guild: discord.Guild, cfg: GuildCon
     asyncio.create_task(_run())
 
 
-def _role_name(bot: "VoiceXPBot", guild_id: int, role_id: int) -> str:
+def _role_name(bot: VoiceXPBot, guild_id: int, role_id: int) -> str:
     guild = bot.get_guild(guild_id)
     role = guild.get_role(role_id) if guild else None
     return role.name if role else f"Cargo {role_id}"
@@ -81,16 +83,14 @@ async def _sort_level_roles(guild: discord.Guild, cfg: GuildConfig) -> None:
         return
 
     pairs = [
-        (reward.sort_key(), role)
-        for reward in cfg.role_rewards
-        if (role := fresh.get(reward.role_id)) is not None
+        (reward.sort_key(), role) for reward in cfg.role_rewards if (role := fresh.get(reward.role_id)) is not None
     ]
     if len(pairs) < 2:
         return
 
-    pairs.sort(key=lambda p: p[0])                       # menor exigência primeiro
-    slots = sorted(role.position for _, role in pairs)   # posições ocupadas, de baixo p/ cima
-    positions = {role: slot for (_, role), slot in zip(pairs, slots)}
+    pairs.sort(key=lambda p: p[0])  # menor exigência primeiro
+    slots = sorted(role.position for _, role in pairs)  # posições ocupadas, de baixo p/ cima
+    positions = {role: slot for (_, role), slot in zip(pairs, slots, strict=True)}
     if all(role.position == slot for role, slot in positions.items()):
         return  # já está em ordem
     try:
@@ -101,16 +101,17 @@ async def _sort_level_roles(guild: discord.Guild, cfg: GuildConfig) -> None:
 
 # ──────────────────────── Seção: Recompensas ────────────────────────
 
-def build_rewards(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
+
+def build_rewards(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
     rewards = sorted(cfg.role_rewards, key=RoleReward.sort_key)
     lines = [f"<@&{r.role_id}> · {_reward_label(r)}" for r in rewards] or ["—"]
 
     body = (
         "\n".join(lines) + "\n\n"
         f"**Reset do ranking** `{RESET_LABELS[cfg.reset_mode]}`\n\n"
-        "-# \"Criar cargo de nível\": você digita o nome e o nível, o bot cria e vincula sozinho "
-        "(hierarquia é ordenada automaticamente, maior nível fica mais alto). Para usar um cargo "
-        "que já existe, escolha no menu \"Adicionar cargo de recompensa\"."
+        '-# Em "Criar cargo de nível", você digita o nome e o nível e o bot cuida do resto: cria o '
+        "cargo, vincula e já organiza a hierarquia (nível maior fica mais acima). Se o cargo já "
+        'existe, use o menu "Adicionar cargo de recompensa".'
     )
     view = SectionView(bot, cfg.guild_id, title="Cargos de Nível", body=body)
 
@@ -164,12 +165,10 @@ def build_rewards(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
 
             await inner.response.defer()
             try:
-                role = await inner.guild.create_role(
-                    name=name, reason=f"Voice XP: cargo de nível {level}"
-                )
+                role = await inner.guild.create_role(name=name, reason=f"Voice XP: cargo de nível {level}")
             except discord.HTTPException:
                 await inner.followup.send(
-                    "Não consegui criar o cargo — confira se tenho a permissão **Gerenciar Cargos**.",
+                    "Não consegui criar o cargo. Confira se tenho a permissão **Gerenciar Cargos**.",
                     ephemeral=True,
                 )
                 return
@@ -195,16 +194,22 @@ def build_rewards(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
         )
 
     view.add_row(
-        button("Criar cargo de nível", on_create_level_role, custom_id=cid("rw", "newlvl"), style=discord.ButtonStyle.primary),
+        button(
+            "Criar cargo de nível",
+            on_create_level_role,
+            custom_id=cid("rw", "newlvl"),
+            style=discord.ButtonStyle.primary,
+        ),
         button(f"Reset: {RESET_LABELS[cfg.reset_mode]}", on_reset_cycle, custom_id=cid("rw", "reset")),
-        button("Voltar", nav_callback(bot, "config"), custom_id=cid("rw", "back")),
+        button("Voltar", nav_callback(bot, "config"), custom_id=cid("rw", "back"), emoji=get_emoji("voltar")),
     )
     return view
 
 
 # ──────────────────── Seção: edição de recompensa ────────────────────
 
-def build_reward_edit(bot: "VoiceXPBot", cfg: GuildConfig, role_id: int) -> SectionView:
+
+def build_reward_edit(bot: VoiceXPBot, cfg: GuildConfig, role_id: int) -> SectionView:
     reward = _find_reward(cfg, role_id)
     if reward is None:  # foi removida enquanto o painel estava aberto
         return build_rewards(bot, cfg)
@@ -220,9 +225,13 @@ def build_reward_edit(bot: "VoiceXPBot", cfg: GuildConfig, role_id: int) -> Sect
     guild = bot.get_guild(cfg.guild_id)
 
     chan_select = channel_select(
-        guild, current=reward.channel_id, placeholder="Canal da mensagem personalizada",
-        channel_types=[discord.ChannelType.text], custom_id=cid("rwe", "channel"),
-        min_values=0, max_values=1,
+        guild,
+        current=reward.channel_id,
+        placeholder="Canal da mensagem personalizada",
+        channel_types=[discord.ChannelType.text],
+        custom_id=cid("rwe", "channel"),
+        min_values=0,
+        max_values=1,
     )
 
     async def on_channel(interaction: discord.Interaction) -> None:
@@ -244,8 +253,16 @@ def build_reward_edit(bot: "VoiceXPBot", cfg: GuildConfig, role_id: int) -> Sect
 
         modal = ConfigModal(
             "Mensagem personalizada",
-            [Field("message", "Mensagem ({user} {role} {level}...)", reward.message, kind="str",
-                   required=False, paragraph=True)],
+            [
+                Field(
+                    "message",
+                    "Mensagem ({user} {role} {level}...)",
+                    reward.message,
+                    kind="str",
+                    required=False,
+                    paragraph=True,
+                )
+            ],
             save,
             custom_id=cid("rwe", "msg", str(role_id)),
         )
@@ -265,7 +282,7 @@ def build_reward_edit(bot: "VoiceXPBot", cfg: GuildConfig, role_id: int) -> Sect
     return view
 
 
-def _requirements_modal(bot: "VoiceXPBot", guild_id: int, role_id: int, *, is_new: bool) -> ConfigModal:
+def _requirements_modal(bot: VoiceXPBot, guild_id: int, role_id: int, *, is_new: bool) -> ConfigModal:
     cfg = bot.configs.get(guild_id)
     reward = _find_reward(cfg, role_id)
     if reward is None:
@@ -301,8 +318,13 @@ def _requirements_modal(bot: "VoiceXPBot", guild_id: int, role_id: int, *, is_ne
         [
             Field("required_level", "Nível necessário", reward.required_level, max_value=1000),
             Field("required_xp", "XP total necessário (opcional)", reward.required_xp, max_value=10**9),
-            Field("required_hours", "Horas totais necessárias (opcional)", reward.required_hours,
-                  kind="float", max_value=100_000),
+            Field(
+                "required_hours",
+                "Horas totais necessárias (opcional)",
+                reward.required_hours,
+                kind="float",
+                max_value=100_000,
+            ),
         ],
         save,
         custom_id=cid("rwe", "reqm", str(role_id), "new" if is_new else "edit"),

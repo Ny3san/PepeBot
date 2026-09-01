@@ -1,4 +1,5 @@
 """Seção: Multiplicadores por cargo."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -7,6 +8,7 @@ import discord
 from discord import ui
 
 from models.guild_config import GuildConfig
+from utils.emoji_utils import get_emoji
 from utils.format import fmt_mult
 from views.base import SectionView, button, cid, nav_callback, refresh
 from views.modals import ConfigModal, Field
@@ -15,7 +17,7 @@ if TYPE_CHECKING:
     from bot import VoiceXPBot
 
 
-def build_multiplicadores(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
+def build_multiplicadores(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
     guild = bot.get_guild(cfg.guild_id)
 
     def _role_position(role_id: int) -> int:
@@ -26,9 +28,8 @@ def build_multiplicadores(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
     lines = [f"<@&{role_id}> · {fmt_mult(value)}" for role_id, value in mults] or ["—"]
 
     body = (
-        "\n".join(lines)
-        + "\n\n-# Ordenados pela hierarquia do cargo (do mais alto ao mais baixo). Com vários "
-        "cargos, vale apenas o MAIOR multiplicador. Afeta somente o XP, nunca o tempo."
+        "\n".join(lines) + "\n\n-# Ordenados do cargo mais alto pro mais baixo. Se a pessoa tem vários cargos, "
+        "só o maior multiplicador conta. E isso afeta só o XP, nunca o tempo de call."
     )
     view = SectionView(bot, cfg.guild_id, title="Multiplicadores por Cargo", body=body)
 
@@ -44,9 +45,17 @@ def build_multiplicadores(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
 
         await interaction.response.send_modal(
             ConfigModal(
-                f"Multiplicador — {role.name[:32]}",
-                [Field("value", "Multiplicador (ex: 1.25, 2, 4)", cfg.role_multipliers.get(role.id, 2),
-                       kind="float", min_value=1, max_value=100)],
+                f"Multiplicador: {role.name[:32]}",
+                [
+                    Field(
+                        "value",
+                        "Multiplicador (ex: 1.25, 2, 4)",
+                        cfg.role_multipliers.get(role.id, 2),
+                        kind="float",
+                        min_value=1,
+                        max_value=100,
+                    )
+                ],
                 save,
                 custom_id=cid("mult", "modal", str(role.id)),
             )
@@ -76,5 +85,5 @@ def build_multiplicadores(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
     remove.callback = on_remove
     view.add_row(remove)
 
-    view.add_row(button("Voltar", nav_callback(bot, "main"), custom_id=cid("mult", "back")))
+    view.add_row(button("Voltar", nav_callback(bot, "main"), custom_id=cid("mult", "back"), emoji=get_emoji("voltar")))
     return view

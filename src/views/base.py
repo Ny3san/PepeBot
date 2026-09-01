@@ -1,9 +1,11 @@
 """Infraestrutura compartilhada das views do painel (Components v2)."""
+
 from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 import discord
 from discord import ui
@@ -22,7 +24,7 @@ Callback = Callable[[discord.Interaction], Awaitable[None]]
 PANEL_TIMEOUT_S = 900  # vida da view do painel
 
 
-def mark_live_panel(bot: "VoiceXPBot", message_id: int) -> None:
+def mark_live_panel(bot: VoiceXPBot, message_id: int) -> None:
     """Registra que esta mensagem tem uma view ativa (evita painel duplicado).
 
     O ressuscitador do setup consulta este registro: se a view ainda está
@@ -46,8 +48,9 @@ def button(
     custom_id: str,
     style: discord.ButtonStyle = discord.ButtonStyle.secondary,
     disabled: bool = False,
+    emoji: str | None = None,
 ) -> ui.Button:
-    btn = ui.Button(label=label, style=style, custom_id=custom_id, disabled=disabled)
+    btn = ui.Button(label=label, style=style, custom_id=custom_id, disabled=disabled, emoji=emoji)
     btn.callback = callback
     return btn
 
@@ -82,29 +85,31 @@ def channel_select(
         min_values=min_values,
         max_values=max_values,
         custom_id=custom_id,
-        default_values=[
-            discord.SelectDefaultValue(id=i, type=discord.SelectDefaultValueType.channel) for i in valid
-        ],
+        default_values=[discord.SelectDefaultValue(id=i, type=discord.SelectDefaultValueType.channel) for i in valid],
     )
 
 
-def nav_callback(bot: "VoiceXPBot", section: str) -> Callback:
+def nav_callback(bot: VoiceXPBot, section: str) -> Callback:
     """Callback padrão de navegação: refresh(bot, interaction, section).
 
     Cobre tanto os botões "ir para X" quanto todo botão "Voltar" — são a
     mesma operação (refresh para uma seção fixa).
     """
+
     async def cb(interaction: discord.Interaction) -> None:
         await refresh(bot, interaction, section)
+
     return cb
 
 
-def toggle_callback(bot: "VoiceXPBot", cfg: "GuildConfig", key: str, section: str) -> Callback:
+def toggle_callback(bot: VoiceXPBot, cfg: GuildConfig, key: str, section: str) -> Callback:
     """Callback padrão: inverte cfg.<key> (bool), salva e faz refresh(section)."""
+
     async def cb(interaction: discord.Interaction) -> None:
         setattr(cfg, key, not getattr(cfg, key))
         bot.configs.save(cfg)
         await refresh(bot, interaction, section)
+
     return cb
 
 
@@ -114,20 +119,20 @@ class SectionView(ui.LayoutView):
     add_row(). Só quem pode gerenciar o bot interage.
     """
 
-    def __init__(self, bot: "VoiceXPBot", guild_id: int, *, title: str, body: str) -> None:
+    def __init__(self, bot: VoiceXPBot, guild_id: int, *, title: str, body: str) -> None:
         super().__init__(timeout=PANEL_TIMEOUT_S)
         self.bot = bot
         self.guild_id = guild_id
         self.container = ui.Container(ui.TextDisplay(f"### {title}\n{body}"), accent_colour=EMBED_COLOR)
         self.add_item(self.container)
 
-    def add_text(self, content: str) -> "SectionView":
+    def add_text(self, content: str) -> SectionView:
         """Bloco de texto extra separado do anterior por uma divisória."""
         self.container.add_item(ui.Separator())
         self.container.add_item(ui.TextDisplay(content))
         return self
 
-    def add_row(self, *items: ui.Item) -> "SectionView":
+    def add_row(self, *items: ui.Item) -> SectionView:
         """Agrupa botões/select numa linha visual (ActionRow) dentro do Container."""
         if not any(isinstance(c, ui.ActionRow) for c in self.container.children):
             self.container.add_item(ui.Separator())  # divisória entre texto e botões
@@ -141,9 +146,7 @@ class SectionView(ui.LayoutView):
         await interaction.response.send_message(view=no_permission_view(interaction.user), ephemeral=True)
         return False
 
-    async def on_error(
-        self, interaction: discord.Interaction, error: Exception, item: ui.Item
-    ) -> None:
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item: ui.Item) -> None:
         # 10062/40060: outra instância do bot (mesmo token) respondeu antes.
         # Não há o que fazer aqui além de avisar de forma limpa no log.
         if isinstance(error, discord.HTTPException) and error.code in (10062, 40060):
@@ -161,7 +164,7 @@ class SectionView(ui.LayoutView):
                 pass
 
 
-async def refresh(bot: "VoiceXPBot", interaction: discord.Interaction, section: str) -> None:
+async def refresh(bot: VoiceXPBot, interaction: discord.Interaction, section: str) -> None:
     """Re-renderiza o painel na mesma mensagem (componentes e modals)."""
     from views.panel import render  # import local para evitar ciclo
 

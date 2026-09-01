@@ -1,4 +1,5 @@
 """Seção: Acesso (cargo autorizado a gerenciar o bot, protegido por 2FA)."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -8,6 +9,7 @@ from discord import ui
 
 from models.guild_config import GuildConfig
 from services.log_service import send_log
+from utils.emoji_utils import get_emoji
 from views.base import SectionView, button, cid, nav_callback, refresh
 from views.twofa import twofa_gated
 
@@ -15,19 +17,20 @@ if TYPE_CHECKING:
     from bot import VoiceXPBot
 
 
-def build_acesso(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
+def build_acesso(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
     body = (
-        f"**Cargo autorizado** "
+        "**Cargo autorizado** "
         + (f"<@&{cfg.manager_role_id}>" if cfg.manager_role_id else "—")
-        + "\n\n-# SOMENTE o dono do servidor e quem tem o cargo definido aqui usam o /setup "
-        "e o /xpadmin (adicionar, remover e resetar XP). Sem cargo definido, apenas o dono. "
-        "Cada ação aqui precisa ser confirmada pelo dono na DM."
+        + "\n\n-# Só o dono do servidor e quem tiver o cargo definido aqui pode usar /setup "
+        "e /xpadmin (adicionar, remover ou resetar XP). Sem cargo definido, só o dono mesmo. "
+        "E toda mudança feita aqui precisa ser confirmada pelo dono na DM."
     )
     view = SectionView(bot, cfg.guild_id, title="Acesso", body=body)
 
     role_select = ui.RoleSelect(
         placeholder="Cargo autorizado a gerenciar o Voice XP",
-        min_values=0, max_values=1,
+        min_values=0,
+        max_values=1,
         custom_id=cid("perm", "role"),
     )
 
@@ -40,8 +43,9 @@ def build_acesso(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
             bot.configs.save(cfg)
             if inner.guild:
                 await send_log(
-                    inner.guild, cfg,
-                    f"**Permissões alteradas** — {inner.user.mention} definiu o cargo autorizado: "
+                    inner.guild,
+                    cfg,
+                    f"**Permissões alteradas:** {inner.user.mention} definiu o cargo autorizado: "
                     + (f"<@&{chosen}>." if chosen else "nenhum."),
                 )
             await refresh(bot, inner, "acesso")
@@ -57,8 +61,9 @@ def build_acesso(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
             bot.configs.save(cfg)
             if inner.guild:
                 await send_log(
-                    inner.guild, cfg,
-                    f"**Permissões alteradas** — {inner.user.mention} removeu o cargo autorizado.",
+                    inner.guild,
+                    cfg,
+                    f"**Permissões alteradas:** {inner.user.mention} removeu o cargo autorizado.",
                 )
             await refresh(bot, inner, "acesso")
 
@@ -66,6 +71,6 @@ def build_acesso(bot: "VoiceXPBot", cfg: GuildConfig) -> SectionView:
 
     view.add_row(
         button("Limpar cargo", on_clear, custom_id=cid("perm", "clear"), disabled=cfg.manager_role_id is None),
-        button("Voltar", nav_callback(bot, "main"), custom_id=cid("perm", "back")),
+        button("Voltar", nav_callback(bot, "main"), custom_id=cid("perm", "back"), emoji=get_emoji("voltar")),
     )
     return view
