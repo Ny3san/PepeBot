@@ -1,8 +1,10 @@
 """Modais genéricos do painel (entrada numérica e de texto validada)."""
+
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 import discord
 from discord import ui
@@ -13,7 +15,7 @@ class Field:
     key: str
     label: str
     default: Any
-    kind: str = "int"          # int | float | str
+    kind: str = "int"  # int | float | str
     min_value: float = 0
     max_value: float = 1_000_000
     required: bool = True

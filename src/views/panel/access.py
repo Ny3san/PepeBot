@@ -70,7 +70,7 @@ def build_acesso(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
         await twofa_gated(bot, "alterar as **permissões**", apply)(interaction)
 
     view.add_row(
-        button("Limpar cargo", on_clear, custom_id=cid("perm", "clear"), disabled=cfg.manager_role_id is None),
+        button("Limpar cargo", on_clear, custom_id=cid("perm", "clear"), disabled=cfg.manager_role_id is None, emoji=get_emoji("denied")),
         button("Voltar", nav_callback(bot, "main"), custom_id=cid("perm", "back"), emoji=get_emoji("voltar")),
     )
     return view

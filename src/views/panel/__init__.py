@@ -12,6 +12,7 @@ channels.py, multipliers.py, events.py, access.py, e dispatcher.py
   └── ativar/desativar sistema
   reward:<id>             (rewards_view, fora da árvore de navegação)
 """
+
 from __future__ import annotations
 
 from views.panel.dispatcher import _SECTIONS, render

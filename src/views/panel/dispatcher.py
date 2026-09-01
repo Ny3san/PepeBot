@@ -1,4 +1,5 @@
 """Dispatcher do painel: mapa seção -> builder e render()."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -29,7 +30,7 @@ _SECTIONS = {
 }
 
 
-def render(bot: "VoiceXPBot", guild_id: int, section: str = "main") -> SectionView:
+def render(bot: VoiceXPBot, guild_id: int, section: str = "main") -> SectionView:
     """Constrói a view (Components v2) de qualquer seção do painel."""
     cfg = bot.configs.get(guild_id)
     if section.startswith("reward:"):

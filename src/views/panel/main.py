@@ -39,7 +39,7 @@ def build_main(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
 
     view.add_row(
         button("XP de Voz", nav_callback(bot, "geral"), custom_id=cid("nav", "geral"), emoji=get_emoji("xp_call")),
-        button("XP de Chat", nav_callback(bot, "mensagens"), custom_id=cid("nav", "mensagens")),
+        button("XP de Chat", nav_callback(bot, "mensagens"), custom_id=cid("nav", "mensagens"), emoji=get_emoji("xp_chat")),
         button("Multiplicadores", nav_callback(bot, "multiplicadores"), custom_id=cid("nav", "multiplicadores"), emoji=get_emoji("multiplicador")),
     )
 

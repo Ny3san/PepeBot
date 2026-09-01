@@ -79,6 +79,7 @@ def build_messages(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
             toggle_callback(bot, cfg, "message_xp_enabled", "mensagens"),
             custom_id=cid("msg", "toggle"),
             style=discord.ButtonStyle.danger if cfg.message_xp_enabled else discord.ButtonStyle.success,
+            emoji=get_emoji("sistema_toggle"),
         ),
     )
     view.add_row(button("Voltar", nav_callback(bot, "main"), custom_id=cid("msg", "back"), emoji=get_emoji("voltar")))

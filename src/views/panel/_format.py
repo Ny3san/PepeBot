@@ -1,4 +1,5 @@
 """Formatação compartilhada entre as seções do painel."""
+
 from __future__ import annotations
 
 

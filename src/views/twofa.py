@@ -7,11 +7,13 @@ no painel na hora. Cada pedido vale para UMA ação e expira em 3 minutos —
 a DM se atualiza sozinha em todos os casos (confirmado/recusado/expirado).
 Bypass: IDs em BYPASS_USER_IDS passam direto, sem 2FA.
 """
+
 from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 import discord
 from discord import ui
@@ -27,13 +29,15 @@ log = logging.getLogger(__name__)
 Action = Callable[[discord.Interaction], Awaitable[None]]
 
 
-def twofa_gated(bot: "VoiceXPBot", action_label: str, apply: Action) -> Callable[[discord.Interaction], Awaitable[None]]:
+def twofa_gated(bot: VoiceXPBot, action_label: str, apply: Action) -> Callable[[discord.Interaction], Awaitable[None]]:
     """Colapsa o par repetido `require_twofa(...) -> apply(...)` num único
     callback de botão/select: quem pode age direto, o resto vai pra DM."""
+
     async def cb(interaction: discord.Interaction) -> None:
         if not await require_twofa(bot, interaction, action_label=action_label, action=apply):
             return
         await apply(interaction)
+
     return cb
 
 
@@ -52,11 +56,11 @@ def _deny_button(callback: Callable[[discord.Interaction], Awaitable[None]]) -> 
 class _ApprovalView(ui.LayoutView):
     """Botões na DM do dono. Consome o pedido no primeiro clique (uso único)."""
 
-    def __init__(self, bot: "VoiceXPBot", key: tuple[int, int], base: str, expires_at: float) -> None:
+    def __init__(self, bot: VoiceXPBot, key: tuple[int, int], base: str, expires_at: float) -> None:
         super().__init__(timeout=REQUEST_TTL_S)
         self.bot = bot
         self.key = key
-        self.base = base                      # linha "@fulano quer ... em ..."
+        self.base = base  # linha "@fulano quer ... em ..."
         self.message: discord.Message | None = None
 
         self._text = ui.TextDisplay(self._body(f"**Expira** <t:{int(expires_at)}:R>"))
@@ -101,7 +105,7 @@ class _ApprovalView(ui.LayoutView):
             await action(panel_interaction)
         except discord.HTTPException:
             log.warning("Não consegui aplicar a ação confirmada em %s", self.key[0])
-        await self._notify_requester(panel_interaction, "O dono confirmou — ação aplicada.")
+        await self._notify_requester(panel_interaction, "O dono confirmou: ação aplicada.")
 
     async def _on_deny(self, interaction: discord.Interaction) -> None:
         payload = self.bot.twofa.pop(*self.key)
@@ -119,7 +123,7 @@ class _ApprovalView(ui.LayoutView):
 
 
 async def require_twofa(
-    bot: "VoiceXPBot",
+    bot: VoiceXPBot,
     interaction: discord.Interaction,
     *,
     action_label: str,
@@ -136,7 +140,11 @@ async def require_twofa(
     if interaction.user.id in bot.settings.bypass_user_ids:
         log.warning(
             "BYPASS_USER_IDS: %s (%s) usou o bypass de 2FA em %s (%s) — ação: %s",
-            interaction.user, interaction.user.id, guild.name, guild.id, action_label,
+            interaction.user,
+            interaction.user.id,
+            guild.name,
+            guild.id,
+            action_label,
         )
         return True
     if interaction.user.id == guild.owner_id:
@@ -146,9 +154,7 @@ async def require_twofa(
     await interaction.response.defer()
 
     if bot.twofa.active(guild.id, interaction.user.id):
-        await interaction.followup.send(
-            "Você já tem um pedido aguardando a confirmação do dono.", ephemeral=True
-        )
+        await interaction.followup.send("Você já tem um pedido aguardando a confirmação do dono.", ephemeral=True)
         return False
 
     base = f"{interaction.user.mention} quer {action_label} em **{guild.name}**."
@@ -166,7 +172,5 @@ async def require_twofa(
         return False
 
     bot.twofa.put(guild.id, interaction.user.id, (interaction, action))
-    await interaction.followup.send(
-        "Pedido enviado ao dono do servidor — aguardando a confirmação.", ephemeral=True
-    )
+    await interaction.followup.send("Pedido enviado ao dono do servidor. Aguardando a confirmação.", ephemeral=True)
     return False
