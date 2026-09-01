@@ -104,7 +104,7 @@ def build_extras(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
             custom_id=cid("extras", "group"),
         ),
         button("Configurar bônus", on_group_config, custom_id=cid("extras", "groupcfg")),
-        button("Editar Double XP" if double else "Iniciar Double XP", on_double, custom_id=cid("extras", "double")),
+        button("Editar Double XP" if double else "Iniciar Double XP", on_double, custom_id=cid("extras", "double"), emoji=get_emoji("edit_create_role")),
     )
     view.add_row(button("Voltar", nav_callback(bot, "main"), custom_id=cid("extras", "back"), emoji=get_emoji("voltar")))
     return view

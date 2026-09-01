@@ -71,7 +71,7 @@ def build_geral(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
         )
 
     view.add_row(
-        button("Editar XP e tempo mínimo", on_edit, custom_id=cid("geral", "edit")),
+        button("Editar XP e tempo mínimo", on_edit, custom_id=cid("geral", "edit"), emoji=get_emoji("edit_create_role")),
         button(
             f"Mutado: {yes_no(cfg.allow_muted)}",
             toggle_callback(bot, cfg, "allow_muted", "geral"),

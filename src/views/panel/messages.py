@@ -73,7 +73,7 @@ def build_messages(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
         )
 
     view.add_row(
-        button("Editar XP e cooldown", on_edit_amounts, custom_id=cid("msg", "amounts")),
+        button("Editar XP e cooldown", on_edit_amounts, custom_id=cid("msg", "amounts"), emoji=get_emoji("edit_create_role")),
         button(
             "Desativar" if cfg.message_xp_enabled else "Ativar",
             toggle_callback(bot, cfg, "message_xp_enabled", "mensagens"),
