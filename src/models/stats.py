@@ -1,4 +1,5 @@
 """Modelo das estatísticas de um membro."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,7 +11,7 @@ class MemberStats:
     user_id: int
     total_xp: int = 0
     total_seconds: int = 0
-    period_xp: int = 0       # zera no reset do ranking
+    period_xp: int = 0  # zera no reset do ranking
     period_seconds: int = 0
     daily_xp: int = 0
     daily_seconds: int = 0

@@ -8,6 +8,7 @@ Correções herdadas da versão anterior (preservadas):
   • Cooldown de reconexão empurra o início válido da sessão (anti-farm).
   • Tempo mínimo creditado retroativamente ao ser atingido.
 """
+
 from __future__ import annotations
 
 import logging
@@ -33,13 +34,13 @@ class Session:
     guild_id: int
     user_id: int
     channel_id: int
-    start_at: float          # início "válido" (já considera o cooldown)
+    start_at: float  # início "válido" (já considera o cooldown)
     counted_minutes: int = 0  # minutos já processados nesta sessão
 
 
 @dataclass(slots=True)
 class VoiceTracker:
-    configs: "ConfigRepository"
+    configs: ConfigRepository
     xp: XpService
     rewards: RewardService
     sessions: dict[SessionKey, Session] = field(default_factory=dict)
@@ -59,9 +60,7 @@ class VoiceTracker:
         if self.sessions.pop(key, None) is not None:
             self._last_leave[key] = time.time()
 
-    def on_voice_update(
-        self, member: discord.Member, after: discord.VoiceState
-    ) -> None:
+    def on_voice_update(self, member: discord.Member, after: discord.VoiceState) -> None:
         """Evento on_voice_state_update."""
         if member.bot:
             return
@@ -121,9 +120,7 @@ class VoiceTracker:
                 member = guild.get_member(session.user_id) if guild else None
                 voice = member.voice if member else None
 
-                if voice is None or not cfg.is_trackable_channel(
-                    voice.channel.id if voice.channel else None
-                ):
+                if voice is None or not cfg.is_trackable_channel(voice.channel.id if voice.channel else None):
                     self._end(session.guild_id, session.user_id)
                     continue
 

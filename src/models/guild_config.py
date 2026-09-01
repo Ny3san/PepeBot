@@ -4,10 +4,11 @@ Serializado como JSON na tabela guild_config. O parser aceita também o
 formato legado (camelCase, IDs como string, timestamps em ms) gerado pela
 versão JavaScript do bot, migrando-o de forma transparente.
 """
+
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field, asdict, fields
+from dataclasses import asdict, dataclass, field, fields
 from typing import Any
 
 
@@ -23,8 +24,8 @@ class RoleReward:
     required_xp: int = 0
     required_level: int = 0
     required_hours: float = 0.0
-    message: str = ""               # mensagem personalizada ({user} {role} {level} {hours} {xp})
-    channel_id: int | None = None   # canal da mensagem (fallback: canal de logs)
+    message: str = ""  # mensagem personalizada ({user} {role} {level} {hours} {xp})
+    channel_id: int | None = None  # canal da mensagem (fallback: canal de logs)
 
     def sort_key(self) -> tuple[float, int, int]:
         """Ordena recompensas da menor para a maior exigência."""
@@ -128,7 +129,7 @@ class GuildConfig:
         return data
 
     @classmethod
-    def from_dict(cls, guild_id: int, raw: dict[str, Any]) -> "GuildConfig":
+    def from_dict(cls, guild_id: int, raw: dict[str, Any]) -> GuildConfig:
         if any(key in raw for key in ("xpPerMinute", "allowedChannels", "roleRewards")):
             raw = _migrate_legacy(raw)
 
@@ -139,10 +140,7 @@ class GuildConfig:
             if key == "role_rewards":
                 # Filtra chaves desconhecidas: configs salvas antes de um campo
                 # ser removido do modelo (ex.: remove_previous) não podem quebrar o parser.
-                value = [
-                    RoleReward(**{k: v for k, v in r.items() if k in _ROLE_REWARD_FIELDS})
-                    for r in value
-                ]
+                value = [RoleReward(**{k: v for k, v in r.items() if k in _ROLE_REWARD_FIELDS}) for r in value]
             elif key == "streak_bonuses":
                 value = [StreakBonus(**b) for b in value]
             elif key == "role_multipliers":
@@ -158,6 +156,7 @@ def _ms_to_s(value: float) -> float:
 
 def _migrate_legacy(raw: dict[str, Any]) -> dict[str, Any]:
     """Converte a config camelCase da versão JavaScript para o formato atual."""
+
     def ints(values: list | None) -> list[int]:
         return [int(v) for v in (values or [])]
 

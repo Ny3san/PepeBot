@@ -4,7 +4,7 @@ Bot que dá XP pra quem fica em call. Quanto mais tempo de voz, mais nível,
 e o bot vai entregando cargos sozinho conforme a pessoa sobe. Tem ranking
 com imagem, cartão de perfil, sequência de dias (streak), Double XP,
 multiplicadores por cargo e um painel de configuração inteiro dentro do
-Discord — não precisa mexer em arquivo nenhum depois que o bot está no ar.
+Discord: não precisa mexer em arquivo nenhum depois que o bot está no ar.
 
 Feito em Python 3.12 com discord.py 2.7+. As mensagens do bot usam o
 Components v2 do Discord (aqueles blocos nativos com botão dentro), então
@@ -29,7 +29,7 @@ BYPASS_USER_IDS=         # opcional: IDs (separados por vírgula) com acesso adm
 `CLOWN_TOKEN` e `CLOWN_GUILD_ID` também funcionam como nomes alternativos.
 
 `BYPASS_USER_IDS` é um bypass administrativo global (ignora dono, cargo
-autorizado e 2FA) — cada uso é logado (`utils/checks.py`, `views/twofa.py`).
+autorizado e 2FA). Cada uso é logado (`utils/checks.py`, `views/twofa.py`).
 Deixe vazio se não precisar disso.
 
 No Developer Portal, liga o **Server Members Intent** e o **Message Content
@@ -142,5 +142,5 @@ e rodar `pytest` normalmente a partir da raiz do projeto.
 
 SQLite puro, num arquivo `clown.db` na raiz (o modo WAL gera os arquivos
 `-shm` e `-wal` do lado, é normal). O schema é criado e migrado sozinho no
-boot. Pra mudar de máquina, é só copiar o `clown.db` junto — e se na
+boot. Pra mudar de máquina, é só copiar o `clown.db` junto. Se na
 hospedagem o arquivo ficar em outro lugar, aponte com o `CLOWN_DB_PATH`.

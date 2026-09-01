@@ -1,4 +1,5 @@
 """Comando /setup: abre o painel de configuração (efêmero)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -23,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 class SetupCommand(commands.Cog):
-    def __init__(self, bot: "VoiceXPBot") -> None:
+    def __init__(self, bot: VoiceXPBot) -> None:
         self.bot = bot
 
     @app_commands.command(name="setup", description="Painel de configuração do Voice XP")
@@ -81,12 +82,11 @@ class SetupCommand(commands.Cog):
 
         # Acesso continua protegido mesmo em painéis ressuscitados
         if section == "acesso":
+
             async def reopen(inner: discord.Interaction) -> None:
                 await refresh(self.bot, inner, section)
 
-            if not await require_twofa(
-                self.bot, interaction, action_label="abrir a seção **Acesso**", action=reopen
-            ):
+            if not await require_twofa(self.bot, interaction, action_label="abrir a seção **Acesso**", action=reopen):
                 return
 
         view = render(self.bot, interaction.guild_id, section)
@@ -105,5 +105,5 @@ class SetupCommand(commands.Cog):
                     pass
 
 
-async def setup(bot: "VoiceXPBot") -> None:
+async def setup(bot: VoiceXPBot) -> None:
     await bot.add_cog(SetupCommand(bot))

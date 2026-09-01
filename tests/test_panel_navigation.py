@@ -2,6 +2,7 @@
 modularizar panel.py em subpacote, para garantir que a navegação entre
 seções continua igual depois da divisão.
 """
+
 from __future__ import annotations
 
 import pytest

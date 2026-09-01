@@ -1,4 +1,5 @@
 """Ranking automático (imagem), cargo Top 1 e reset periódico."""
+
 from __future__ import annotations
 
 import logging
@@ -41,7 +42,7 @@ async def _member_avatar(member: discord.Member | None) -> bytes | None:
     return data
 
 
-async def build_rank_file(bot: "VoiceXPBot", guild: discord.Guild) -> discord.File | None:
+async def build_rank_file(bot: VoiceXPBot, guild: discord.Guild) -> discord.File | None:
     """Imagem do top 10 (usada pelo /rank e pela mensagem automática)."""
     top = [s for s in bot.stats.top(guild.id, 10) if s.period_xp > 0]
     if not top:
@@ -66,7 +67,7 @@ async def build_rank_file(bot: "VoiceXPBot", guild: discord.Guild) -> discord.Fi
     return discord.File(BytesIO(png), filename="rank.png")
 
 
-def build_rank_view(bot: "VoiceXPBot", guild: discord.Guild) -> ui.LayoutView:
+def build_rank_view(bot: VoiceXPBot, guild: discord.Guild) -> ui.LayoutView:
     """Fallback em Components v2 (ranking vazio ou falha na imagem)."""
     cfg = bot.configs.get(guild.id)
     top = [s for s in bot.stats.top(guild.id, 10) if s.period_xp > 0]
@@ -83,7 +84,7 @@ def build_rank_view(bot: "VoiceXPBot", guild: discord.Guild) -> ui.LayoutView:
     return view
 
 
-async def update_rank_message(bot: "VoiceXPBot", guild: discord.Guild) -> None:
+async def update_rank_message(bot: VoiceXPBot, guild: discord.Guild) -> None:
     """Mantém a mensagem de ranking (imagem) editada no canal configurado."""
     cfg = bot.configs.get(guild.id)
     if not cfg.rank_channel_id:
@@ -123,7 +124,7 @@ async def update_rank_message(bot: "VoiceXPBot", guild: discord.Guild) -> None:
     bot.configs.save(cfg)
 
 
-async def update_top1(bot: "VoiceXPBot", guild: discord.Guild) -> None:
+async def update_top1(bot: VoiceXPBot, guild: discord.Guild) -> None:
     """Garante que o cargo Top 1 tenha exatamente um dono."""
     cfg = bot.configs.get(guild.id)
     if not cfg.top1_enabled or not cfg.top1_role_id:
@@ -150,12 +151,12 @@ async def update_top1(bot: "VoiceXPBot", guild: discord.Guild) -> None:
         return
     try:
         await member.add_roles(role, reason="Voice XP: novo Top 1")
-        await send_log(guild, cfg, f"**Novo Top 1** — <@{leader_id}> assumiu a liderança do ranking.")
+        await send_log(guild, cfg, f"**Novo Top 1:** <@{leader_id}> assumiu a liderança do ranking.")
     except discord.HTTPException:
         pass
 
 
-async def check_period_reset(bot: "VoiceXPBot", guild: discord.Guild) -> None:
+async def check_period_reset(bot: VoiceXPBot, guild: discord.Guild) -> None:
     """Reseta o ranking quando o período (7d/30d) vence."""
     cfg = bot.configs.get(guild.id)
     duration = RESET_DURATIONS_S.get(cfg.reset_mode)
@@ -175,7 +176,7 @@ async def check_period_reset(bot: "VoiceXPBot", guild: discord.Guild) -> None:
         await send_log(
             guild,
             cfg,
-            f"**Ranking resetado** vencedor : <@{winner.user_id}> "
+            f"**Ranking resetado**, vencedor: <@{winner.user_id}> "
             f"com **{fmt_int(winner.period_xp)} XP** ({fmt_hours(winner.period_seconds)}).",
         )
 

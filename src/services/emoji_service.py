@@ -34,31 +34,29 @@ class EmojiManager:
         with open(EMOJI_MAP_FILE, "w") as f:
             json.dump({name: str(emoji) for name, emoji in self.emojis.items()}, f, indent=2)
 
-    async def upload_all(self, guild_id: int, skip_existing: bool = True) -> dict[str, str]:
-        """Upload de imagens como emojis (só faltantes se skip_existing=True)."""
-        guild = self.bot.get_guild(guild_id)
-        if not guild:
-            raise ValueError(f"Guild {guild_id} não encontrada")
-
+    async def upload_all(self, skip_existing: bool = True) -> dict[str, str]:
+        """Upload de imagens como emojis da aplicação (bot), válidos em todos os servidores."""
         results = {}
         if not ASSETS_DIR.exists():
             return results
 
-        # Carrega emojis já existentes do servidor
-        existing_names = {e.name for e in guild.emojis} if skip_existing else set()
+        # Emojis da aplicação já existentes
+        existing = {e.name: e for e in await self.bot.fetch_application_emojis()}
+        if skip_existing:
+            self.emojis.update({name: e for name, e in existing.items()})
 
         for img_file in sorted(ASSETS_DIR.glob("*.png")):
             emoji_name = img_file.stem.replace("-", "_").replace(" ", "_")[:32]
 
-            # Se já existe no servidor, pula
-            if emoji_name in existing_names:
-                results[emoji_name] = f"⏭️ Já existe"
-                print(f"⏭️ {emoji_name} já existe no servidor")
+            if skip_existing and emoji_name in existing:
+                self.emojis[emoji_name] = existing[emoji_name]
+                results[emoji_name] = "⏭️ Já existe"
+                print(f"⏭️ {emoji_name} já existe na aplicação")
                 continue
 
             try:
                 with open(img_file, "rb") as f:
-                    emoji = await guild.create_custom_emoji(name=emoji_name, image=f.read())
+                    emoji = await self.bot.create_application_emoji(name=emoji_name, image=f.read())
                     self.emojis[emoji_name] = emoji
                     results[emoji_name] = str(emoji)
                     print(f"✓ {emoji_name} criado: {emoji}")

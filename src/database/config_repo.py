@@ -1,4 +1,5 @@
 """Repositório da configuração por servidor (com cache em memória)."""
+
 from __future__ import annotations
 
 import json
@@ -25,9 +26,7 @@ class ConfigRepository:
         if guild_id in self._cache:
             return self._cache[guild_id]
 
-        row = self._db.conn.execute(
-            "SELECT config FROM guild_config WHERE guild_id = ?", (str(guild_id),)
-        ).fetchone()
+        row = self._db.conn.execute("SELECT config FROM guild_config WHERE guild_id = ?", (str(guild_id),)).fetchone()
 
         if row is None:
             cfg = GuildConfig(guild_id=guild_id)
@@ -35,9 +34,7 @@ class ConfigRepository:
             try:
                 cfg = GuildConfig.from_dict(guild_id, json.loads(row["config"]))
             except Exception:
-                log.error(
-                    "Config corrompida para guild %s — usando defaults.", guild_id, exc_info=True
-                )
+                log.error("Config corrompida para guild %s — usando defaults.", guild_id, exc_info=True)
                 cfg = GuildConfig(guild_id=guild_id)
 
         self._cache[guild_id] = cfg

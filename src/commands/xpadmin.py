@@ -1,4 +1,5 @@
 """Comando /xpadmin (e -xpadmin): correções manuais de XP."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class XpAdmin(commands.Cog):
-    def __init__(self, bot: "VoiceXPBot") -> None:
+    def __init__(self, bot: VoiceXPBot) -> None:
         self.bot = bot
 
     async def cog_check(self, ctx: commands.Context) -> bool:
@@ -33,7 +34,9 @@ class XpAdmin(commands.Cog):
     @commands.guild_only()
     async def xpadmin(self, ctx: commands.Context) -> None:
         if ctx.invoked_subcommand is None:
-            await ctx.send("Uso: `xpadmin add|remove|reset <membro> [quantidade]` ou `xpadmin resetall`", ephemeral=True)
+            await ctx.send(
+                "Uso: `xpadmin add|remove|reset <membro> [quantidade]` ou `xpadmin resetall`", ephemeral=True
+            )
 
     @xpadmin.command(name="add", description="Adicionar XP a um membro")
     async def add(self, ctx: commands.Context, membro: discord.Member, quantidade: commands.Range[int, 1]) -> None:
@@ -53,8 +56,9 @@ class XpAdmin(commands.Cog):
         count = self.bot.stats.reset_guild(ctx.guild.id)
         await self._strip_reward_roles(ctx.guild, cfg)
         await send_log(
-            ctx.guild, cfg,
-            f"**XP resetado** — {ctx.author.mention} zerou os dados de **todos** ({count} membros).",
+            ctx.guild,
+            cfg,
+            f"**XP resetado:** {ctx.author.mention} zerou os dados de **todos** ({count} membros).",
         )
         await ctx.send(f"XP de **todo mundo** zerado ({count} registros).", ephemeral=True)
 
@@ -66,9 +70,10 @@ class XpAdmin(commands.Cog):
 
         self.bot.stats.reset_user(ctx.guild.id, membro.id)
         await self.bot.rewards.check_member(membro, cfg)
-        await send_log(ctx.guild, cfg, f"**XP resetado** — {ctx.author.mention} zerou os dados de {membro.mention}.")
-        await ctx.send(f"Dados de {membro.mention} foram zerados.", ephemeral=True,
-                       allowed_mentions=discord.AllowedMentions.none())
+        await send_log(ctx.guild, cfg, f"**XP resetado:** {ctx.author.mention} zerou os dados de {membro.mention}.")
+        await ctx.send(
+            f"Dados de {membro.mention} foram zerados.", ephemeral=True, allowed_mentions=discord.AllowedMentions.none()
+        )
 
     async def _strip_reward_roles(self, guild: discord.Guild, cfg) -> None:
         """Remove os cargos de nível de todo mundo após um reset geral."""
@@ -89,8 +94,9 @@ class XpAdmin(commands.Cog):
 
         verb = "adicionou" if delta > 0 else "removeu"
         await send_log(
-            ctx.guild, cfg,
-            f"**Ajuste de XP** — {ctx.author.mention} {verb} **{fmt_int(abs(delta))} XP** "
+            ctx.guild,
+            cfg,
+            f"**Ajuste de XP:** {ctx.author.mention} {verb} **{fmt_int(abs(delta))} XP** "
             f"({member.mention} agora tem {fmt_int(stats.total_xp)} XP total).",
         )
         await ctx.send(
@@ -101,5 +107,5 @@ class XpAdmin(commands.Cog):
         )
 
 
-async def setup(bot: "VoiceXPBot") -> None:
+async def setup(bot: VoiceXPBot) -> None:
     await bot.add_cog(XpAdmin(bot))

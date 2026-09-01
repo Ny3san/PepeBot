@@ -4,6 +4,7 @@ Cada recompensa pode exigir XP total, nível e/ou horas totais — todos os
 requisitos configurados precisam ser atendidos. Suporta remoção dos cargos
 anteriores e mensagem personalizada em um canal específico.
 """
+
 from __future__ import annotations
 
 import logging
@@ -48,9 +49,7 @@ class RewardService:
     def __init__(self, stats: StatsRepository) -> None:
         self._stats = stats
 
-    async def check_member(
-        self, member: discord.Member, cfg: GuildConfig, stats: MemberStats | None = None
-    ) -> None:
+    async def check_member(self, member: discord.Member, cfg: GuildConfig, stats: MemberStats | None = None) -> None:
         """Sincroniza o cargo de recompensa do membro com o XP dele.
 
         O membro fica com EXATAMENTE UM cargo: o de maior exigência que o XP
@@ -100,7 +99,7 @@ class RewardService:
         stats: MemberStats,
         level: int,
     ) -> None:
-        default = f"**Cargo concedido** — {member.mention} recebeu {role.mention}."
+        default = f"**Cargo concedido:** {member.mention} recebeu {role.mention}."
         text = reward.message.strip() or default
         text = (
             text.replace("{user}", member.mention)
@@ -113,9 +112,7 @@ class RewardService:
         channel = member.guild.get_channel(reward.channel_id) if reward.channel_id else None
         if isinstance(channel, discord.abc.Messageable):
             try:
-                await channel.send(
-                    text, allowed_mentions=discord.AllowedMentions(users=[member], roles=False)
-                )
+                await channel.send(text, allowed_mentions=discord.AllowedMentions(users=[member], roles=False))
                 return
             except discord.HTTPException:
                 pass

@@ -4,6 +4,7 @@ Regras de datas aplicadas na leitura (lazy):
   • Virada de dia zera os contadores diários.
   • Sequência (streak) é zerada se o membro ficou um dia inteiro sem XP.
 """
+
 from __future__ import annotations
 
 from datetime import date, timedelta
@@ -28,12 +29,8 @@ class StatsRepository:
     def get(self, guild_id: int, user_id: int) -> MemberStats:
         conn = self._db.conn
         key = (str(guild_id), str(user_id))
-        conn.execute(
-            "INSERT OR IGNORE INTO voice_stats (guild_id, user_id) VALUES (?, ?)", key
-        )
-        row = conn.execute(
-            "SELECT * FROM voice_stats WHERE guild_id = ? AND user_id = ?", key
-        ).fetchone()
+        conn.execute("INSERT OR IGNORE INTO voice_stats (guild_id, user_id) VALUES (?, ?)", key)
+        row = conn.execute("SELECT * FROM voice_stats WHERE guild_id = ? AND user_id = ?", key).fetchone()
         stats = MemberStats(
             guild_id=guild_id,
             user_id=user_id,

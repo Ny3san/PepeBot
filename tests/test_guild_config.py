@@ -1,4 +1,5 @@
 """GuildConfig: defaults, (de)serialização e migração do formato legado."""
+
 from __future__ import annotations
 
 import time

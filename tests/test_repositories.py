@@ -1,4 +1,5 @@
 """StatsRepository e ConfigRepository sobre Database(path=":memory:")."""
+
 from __future__ import annotations
 
 from datetime import date, timedelta
@@ -74,8 +75,7 @@ def test_register_streak_day_incrementa_em_dias_consecutivos(stats_repo: StatsRe
 def test_register_streak_day_ja_contado_hoje_nao_duplica(stats_repo: StatsRepository, db: Database):
     stats = stats_repo.get(guild_id=1, user_id=2)
     db.conn.execute(
-        "UPDATE voice_stats SET streak_current = 3, streak_last_date = ? "
-        "WHERE guild_id = '1' AND user_id = '2'",
+        "UPDATE voice_stats SET streak_current = 3, streak_last_date = ? WHERE guild_id = '1' AND user_id = '2'",
         (_today(),),
     )
     db.conn.commit()
@@ -89,8 +89,7 @@ def test_register_streak_day_ja_contado_hoje_nao_duplica(stats_repo: StatsReposi
 def test_get_zera_streak_apos_um_dia_inteiro_sem_atividade(stats_repo: StatsRepository, db: Database):
     stats_repo.add_xp(guild_id=1, user_id=2, xp=10, seconds=10)
     db.conn.execute(
-        "UPDATE voice_stats SET streak_current = 5, streak_last_date = ? "
-        "WHERE guild_id = '1' AND user_id = '2'",
+        "UPDATE voice_stats SET streak_current = 5, streak_last_date = ? WHERE guild_id = '1' AND user_id = '2'",
         (_two_days_ago(),),
     )
     db.conn.commit()
@@ -180,9 +179,7 @@ def test_get_usa_cache_em_memoria(config_repo: ConfigRepository, db: Database):
 def test_get_com_json_corrompido_cai_para_defaults_em_vez_de_derrubar_o_guild(
     config_repo: ConfigRepository, db: Database
 ):
-    db.conn.execute(
-        "INSERT INTO guild_config (guild_id, config) VALUES (?, ?)", ("42", "{isso não é json")
-    )
+    db.conn.execute("INSERT INTO guild_config (guild_id, config) VALUES (?, ?)", ("42", "{isso não é json"))
     db.conn.commit()
 
     cfg = config_repo.get(guild_id=42)
@@ -191,9 +188,7 @@ def test_get_com_json_corrompido_cai_para_defaults_em_vez_de_derrubar_o_guild(
     assert cfg.enabled is False  # defaults, sem propagar a exceção
 
 
-def test_get_com_config_estruturalmente_invalida_cai_para_defaults(
-    config_repo: ConfigRepository, db: Database
-):
+def test_get_com_config_estruturalmente_invalida_cai_para_defaults(config_repo: ConfigRepository, db: Database):
     # JSON válido, mas com um formato que quebra a reconstrução do dataclass
     db.conn.execute(
         "INSERT INTO guild_config (guild_id, config) VALUES (?, ?)",

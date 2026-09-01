@@ -4,6 +4,7 @@ As operações são síncronas porém sub-milissegundo; para o volume de um bot
 de voz (1 escrita por membro ativo por minuto) isso não bloqueia o event
 loop de forma perceptível e evita a complexidade de um pool assíncrono.
 """
+
 from __future__ import annotations
 
 import logging
@@ -52,6 +53,7 @@ class Database:
         if path is None:
             # Suporta CLOWN_DB_PATH como env var para hosts (padrão: raiz do projeto)
             import os
+
             db_env = os.getenv("CLOWN_DB_PATH")
             if db_env:
                 path = Path(db_env)

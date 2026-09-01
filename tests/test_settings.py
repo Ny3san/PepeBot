@@ -1,4 +1,5 @@
 """Carregamento de configurações via .env (config/settings.py)."""
+
 from __future__ import annotations
 
 import pytest

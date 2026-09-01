@@ -4,6 +4,7 @@ Centraliza o cálculo de multiplicadores e a aplicação dos limites diários,
 para que o tracker fique responsável apenas por "quando" creditar e este
 serviço por "quanto".
 """
+
 from __future__ import annotations
 
 import logging

@@ -4,6 +4,7 @@ Testado sem instanciar VoiceXPBot de verdade (o __init__ abriria o
 clown.db real) — o método não usa `self`, então é chamado direto na
 classe com um `self` dummy.
 """
+
 from __future__ import annotations
 
 import logging

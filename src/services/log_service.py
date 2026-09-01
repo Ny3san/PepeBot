@@ -1,4 +1,5 @@
 """Envio de logs para o canal configurado do servidor."""
+
 from __future__ import annotations
 
 import logging

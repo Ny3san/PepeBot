@@ -1,4 +1,5 @@
 """Eventos de voz e sincronização inicial (extensão)."""
+
 from __future__ import annotations
 
 import logging
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 class VoiceEvents(commands.Cog):
-    def __init__(self, bot: "VoiceXPBot") -> None:
+    def __init__(self, bot: VoiceXPBot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
@@ -38,5 +39,5 @@ class VoiceEvents(commands.Cog):
         self.bot.tracker.on_voice_update(member, after)
 
 
-async def setup(bot: "VoiceXPBot") -> None:
+async def setup(bot: VoiceXPBot) -> None:
     await bot.add_cog(VoiceEvents(bot))

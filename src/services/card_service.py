@@ -1,10 +1,11 @@
 """Geração das imagens do bot (Pillow): cartão de perfil e leaderboard.
 
-Estilo "profile banner": topo com gradiente colorido (indigo → roxo → rosa),
-painel escuro embaixo e avatar sobreposto com anel — inspirado nos cartões
-da Loritta / perfis do Discord. Desenhado em 2x e reduzido com LANCZOS.
+Banner com gradiente neutro (cinza → preto) no topo, painel escuro embaixo
+e avatar sobreposto com anel. O leaderboard usa uma tira fina do mesmo
+gradiente como assinatura visual. Desenhado em 2x e reduzido com LANCZOS.
 O desenho roda em thread (asyncio.to_thread) para não bloquear o event loop.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -15,12 +16,12 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 # ── Paleta (preto e cinza) ──────────────────────────────────
-PANEL = (17, 18, 20)             # painel quase preto
+PANEL = (17, 18, 20)  # painel quase preto
 TEXT = (255, 255, 255, 255)
 MUTED = (150, 155, 163, 255)
 FAINT = (105, 110, 118, 255)
 BAR_BG = (46, 48, 53, 255)
-GRAD = [(72, 74, 82), (48, 50, 56), (30, 31, 35)]        # banner: cinza → preto
+GRAD = [(72, 74, 82), (48, 50, 56), (30, 31, 35)]  # banner: cinza → preto
 BAR_GRAD = [(245, 245, 248), (200, 203, 209), (150, 155, 163)]  # barra: branco → cinza
 GOLD = (241, 196, 83, 255)
 SILVER = (200, 204, 210, 255)
@@ -32,14 +33,14 @@ S = 2  # fator de supersampling
 _ASSETS_FONTS = Path(__file__).resolve().parents[2] / "assets" / "fonts"
 
 _FONT_BOLD = [
-    _ASSETS_FONTS / "DejaVuSans-Bold.ttf",       # embutida no repo: sempre disponível
+    _ASSETS_FONTS / "DejaVuSans-Bold.ttf",  # embutida no repo: sempre disponível
     "C:/Windows/Fonts/seguisb.ttf",
     "C:/Windows/Fonts/segoeuib.ttf",
     "C:/Windows/Fonts/arialbd.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
 ]
 _FONT_REGULAR = [
-    _ASSETS_FONTS / "DejaVuSans.ttf",             # embutida no repo: sempre disponível
+    _ASSETS_FONTS / "DejaVuSans.ttf",  # embutida no repo: sempre disponível
     "C:/Windows/Fonts/segoeui.ttf",
     "C:/Windows/Fonts/arial.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
@@ -58,7 +59,7 @@ def _px(v: float) -> int:
 
 
 def _lerp(c1: tuple, c2: tuple, t: float) -> tuple:
-    return tuple(int(a + (b - a) * t) for a, b in zip(c1, c2))
+    return tuple(int(a + (b - a) * t) for a, b in zip(c1, c2, strict=True))
 
 
 def _grad_color(t: float, stops: list[tuple] = GRAD) -> tuple:
@@ -145,9 +146,7 @@ def _banner_base(w: int, h: int, banner_h: int) -> Image.Image:
 def _finish(base: Image.Image, radius: int) -> bytes:
     """Aplica os cantos arredondados e finaliza em 1x."""
     mask = Image.new("L", base.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle(
-        (0, 0, base.width - 1, base.height - 1), radius=radius, fill=255
-    )
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, base.width - 1, base.height - 1), radius=radius, fill=255)
     out = Image.new("RGBA", base.size, (0, 0, 0, 0))
     out.paste(base, (0, 0), mask)
     out = out.resize((out.width // S, out.height // S), Image.LANCZOS)
@@ -157,6 +156,7 @@ def _finish(base: Image.Image, radius: int) -> bytes:
 
 
 # ════════════════════════ Cartão de perfil ════════════════════════
+
 
 @dataclass(frozen=True, slots=True)
 class CardData:
@@ -182,8 +182,7 @@ def _draw_card(data: CardData) -> bytes:
     ax, acy = _px(56), BANNER  # centro vertical na linha do banner
     ring = _px(7)
     draw.ellipse(
-        (ax - ring, acy - _px(av_size // 2) - ring,
-         ax + _px(av_size) + ring, acy + _px(av_size // 2) + ring),
+        (ax - ring, acy - _px(av_size // 2) - ring, ax + _px(av_size) + ring, acy + _px(av_size // 2) + ring),
         fill=PANEL,
     )
     avatar = _circle_avatar(data.avatar_png, av_size)
@@ -237,13 +236,14 @@ async def render_card(data: CardData) -> bytes:
 
 # ════════════════════════ Leaderboard ════════════════════════
 
+
 @dataclass(frozen=True, slots=True)
 class LeaderboardEntry:
     rank: int
     name: str
-    level_text: str      # "Nv. 42"
-    hours_text: str      # "10h 05m"
-    xp_fraction: float   # xp relativo ao 1º lugar (0..1)
+    level_text: str  # "Nv. 42"
+    hours_text: str  # "10h 05m"
+    xp_fraction: float  # xp relativo ao 1º lugar (0..1)
     avatar_png: bytes | None
 
 
@@ -251,12 +251,17 @@ RANK_COLORS = {1: GOLD, 2: SILVER, 3: BRONZE}
 
 
 def _draw_leaderboard(entries: list[LeaderboardEntry]) -> bytes:
-    row_h, pad_top, pad_bottom = 46, 10, 12
+    row_h, pad_top, pad_bottom, stripe_h = 46, 10, 12, 5
     W = _px(620)
-    H = _px(pad_top + row_h * len(entries) + pad_bottom)
+    stripe = _px(stripe_h)
+    H = stripe + _px(pad_top + row_h * len(entries) + pad_bottom)
     img = Image.new("RGBA", (W, H))
     ImageDraw.Draw(img).rectangle((0, 0, W, H), fill=PANEL)
     draw = ImageDraw.Draw(img)
+
+    # ── Tira gradiente no topo: mesma assinatura visual do cartão ──
+    for x in range(W):
+        draw.line([(x, 0), (x, stripe)], fill=_grad_color(x / max(1, W - 1), GRAD))
 
     rank_font = _font(16, bold=True)
     name_font = _font(15, bold=True)
@@ -264,7 +269,7 @@ def _draw_leaderboard(entries: list[LeaderboardEntry]) -> bytes:
     hours_font = _font(12)
 
     for i, entry in enumerate(entries):
-        cy = _px(pad_top + i * row_h + row_h // 2)
+        cy = stripe + _px(pad_top + i * row_h + row_h // 2)
 
         # posição (top 3 colorido)
         rank_text = str(entry.rank)

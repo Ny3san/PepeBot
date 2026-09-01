@@ -1,4 +1,5 @@
 """Formatação de números, tempo e barras de progresso."""
+
 from __future__ import annotations
 
 

@@ -3,6 +3,7 @@
 Não instanciamos discord.Member/Guild reais (exigem estado de conexão);
 os dublês aqui implementam só a superfície usada pelos services testados.
 """
+
 from __future__ import annotations
 
 import sys

@@ -1,4 +1,5 @@
 """Verificações de permissão do painel e comandos administrativos."""
+
 from __future__ import annotations
 
 import logging
@@ -21,16 +22,14 @@ def no_permission_view(user: discord.abc.User) -> ui.LayoutView:
     view = ui.LayoutView()
     view.add_item(
         ui.Container(
-            ui.TextDisplay(
-                f"### Acesso negado\n{user.mention} você não tem permissão para usar isso."
-            ),
+            ui.TextDisplay(f"### Acesso negado\n{user.mention} você não tem permissão para usar isso."),
             accent_colour=EMBED_COLOR,
         )
     )
     return view
 
 
-def can_manage(bot: "VoiceXPBot", cfg: GuildConfig, member: discord.Member) -> bool:
+def can_manage(bot: VoiceXPBot, cfg: GuildConfig, member: discord.Member) -> bool:
     """True se o membro pode gerenciar o bot (/setup e /xpadmin).
 
     SOMENTE o dono do servidor e quem tem o cargo definido em Permissões
@@ -41,7 +40,10 @@ def can_manage(bot: "VoiceXPBot", cfg: GuildConfig, member: discord.Member) -> b
     if member.id in bot.settings.bypass_user_ids:
         log.warning(
             "BYPASS_USER_IDS: %s (%s) usou o bypass administrativo em %s (%s)",
-            member, member.id, member.guild.name, member.guild.id,
+            member,
+            member.id,
+            member.guild.name,
+            member.guild.id,
         )
         return True
     if member.id == member.guild.owner_id:

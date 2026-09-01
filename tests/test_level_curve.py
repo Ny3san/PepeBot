@@ -1,4 +1,5 @@
 """Curva de níveis (services/level_service.py)."""
+
 from __future__ import annotations
 
 from services.level_service import LevelCurve

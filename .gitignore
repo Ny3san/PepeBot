@@ -18,7 +18,10 @@ __pycache__/
 
 # Ferramentas locais
 .codegraph/
-.claude/settings.local.json
+.claude/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
 
 # Credenciais de deploy (host/usuário SFTP)
 .vscode/sftp.json

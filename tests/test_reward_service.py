@@ -1,4 +1,5 @@
 """RewardService: elegibilidade e sincronização de cargo (services/reward_service.py)."""
+
 from __future__ import annotations
 
 import pytest

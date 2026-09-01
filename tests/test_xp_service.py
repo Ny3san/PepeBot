@@ -1,4 +1,5 @@
 """XpService: multiplicadores e crédito de XP/minutos (services/xp_service.py)."""
+
 from __future__ import annotations
 
 from datetime import date, timedelta
@@ -131,7 +132,7 @@ def test_award_minutes_cap_de_xp_corta_xp_mas_nao_o_tempo(stats_repo: StatsRepos
 
     result = svc.award_minutes(cfg, member, channel, minutes=10)
 
-    assert result.xp == 50       # cortado pelo cap de XP
+    assert result.xp == 50  # cortado pelo cap de XP
     assert result.seconds == 600  # tempo não é afetado pelo cap de XP
 
 
@@ -187,9 +188,7 @@ def test_award_message_xp_sem_xp_retorna_none(stats_repo: StatsRepository):
 
 
 # ── Bônus de streak vale no dia do marco (não no dia seguinte) ──
-def test_award_minutes_aplica_bonus_de_streak_no_proprio_dia_do_marco(
-    stats_repo: StatsRepository, db: Database
-):
+def test_award_minutes_aplica_bonus_de_streak_no_proprio_dia_do_marco(stats_repo: StatsRepository, db: Database):
     guild = FakeGuild()
     member = FakeMember(guild)
     channel = FakeVoiceChannel(members=[member])
@@ -199,8 +198,7 @@ def test_award_minutes_aplica_bonus_de_streak_no_proprio_dia_do_marco(
     # Membro já tem streak de 6 dias, ativo ontem: hoje é o 7º dia (marco).
     stats_repo.add_xp(guild_id=1, user_id=member.id, xp=0, seconds=0)
     db.conn.execute(
-        "UPDATE voice_stats SET streak_current = 6, streak_last_date = ? "
-        "WHERE guild_id = '1' AND user_id = ?",
+        "UPDATE voice_stats SET streak_current = 6, streak_last_date = ? WHERE guild_id = '1' AND user_id = ?",
         (_yesterday(), str(member.id)),
     )
     db.conn.commit()
@@ -211,9 +209,7 @@ def test_award_minutes_aplica_bonus_de_streak_no_proprio_dia_do_marco(
     assert result.stats.streak_current == 7  # streak também foi persistido
 
 
-def test_award_message_xp_aplica_bonus_de_streak_no_proprio_dia_do_marco(
-    stats_repo: StatsRepository, db: Database
-):
+def test_award_message_xp_aplica_bonus_de_streak_no_proprio_dia_do_marco(stats_repo: StatsRepository, db: Database):
     guild = FakeGuild()
     member = FakeMember(guild)
     cfg = make_cfg(message_xp_amount=10, streak_bonuses=[StreakBonus(7, 2.0)])
@@ -221,8 +217,7 @@ def test_award_message_xp_aplica_bonus_de_streak_no_proprio_dia_do_marco(
 
     stats_repo.add_xp(guild_id=1, user_id=member.id, xp=0, seconds=0)
     db.conn.execute(
-        "UPDATE voice_stats SET streak_current = 6, streak_last_date = ? "
-        "WHERE guild_id = '1' AND user_id = ?",
+        "UPDATE voice_stats SET streak_current = 6, streak_last_date = ? WHERE guild_id = '1' AND user_id = ?",
         (_yesterday(), str(member.id)),
     )
     db.conn.commit()

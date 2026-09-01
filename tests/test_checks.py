@@ -1,4 +1,5 @@
 """can_manage: permissões do painel/comandos administrativos (utils/checks.py)."""
+
 from __future__ import annotations
 
 import logging

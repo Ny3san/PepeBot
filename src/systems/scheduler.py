@@ -1,8 +1,9 @@
 """Tasks periódicas do bot (extensão).
 
-  • xp_tick    — credita XP das sessões ativas a cada 60s.
-  • rank_tick  — ranking, Top 1 e reset de período a cada 5 min.
+• xp_tick    — credita XP das sessões ativas a cada 60s.
+• rank_tick  — ranking, Top 1 e reset de período a cada 5 min.
 """
+
 from __future__ import annotations
 
 import logging
@@ -20,7 +21,7 @@ log = logging.getLogger(__name__)
 
 
 class Scheduler(commands.Cog):
-    def __init__(self, bot: "VoiceXPBot") -> None:
+    def __init__(self, bot: VoiceXPBot) -> None:
         self.bot = bot
         self.xp_tick.start()
         self.rank_tick.start()
@@ -51,5 +52,5 @@ class Scheduler(commands.Cog):
         await self.bot.wait_until_ready()
 
 
-async def setup(bot: "VoiceXPBot") -> None:
+async def setup(bot: VoiceXPBot) -> None:
     await bot.add_cog(Scheduler(bot))

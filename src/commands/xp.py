@@ -1,4 +1,5 @@
 """Comando /xp (e -xp): cartão de perfil gerado com Pillow."""
+
 from __future__ import annotations
 
 import logging
@@ -21,7 +22,7 @@ log = logging.getLogger(__name__)
 
 
 class XpCommand(commands.Cog):
-    def __init__(self, bot: "VoiceXPBot") -> None:
+    def __init__(self, bot: VoiceXPBot) -> None:
         self.bot = bot
 
     @commands.hybrid_command(name="xp", description="Seu perfil de XP de voz")
@@ -73,5 +74,5 @@ class XpCommand(commands.Cog):
         return view
 
 
-async def setup(bot: "VoiceXPBot") -> None:
+async def setup(bot: VoiceXPBot) -> None:
     await bot.add_cog(XpCommand(bot))

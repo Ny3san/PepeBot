@@ -4,6 +4,7 @@ A curva é isolada nesta classe para poder ser trocada no futuro sem
 tocar no resto do código (basta alterar `xp_for_level` mantendo a
 assinatura).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,10 +14,10 @@ from config.defaults import LEVEL_XP_BASE, LEVEL_XP_LINEAR, LEVEL_XP_QUAD
 
 @dataclass(frozen=True, slots=True)
 class LevelProgress:
-    level: int        # nível atual
-    current: int      # XP acumulado dentro do nível atual
-    needed: int       # XP necessário para o próximo nível
-    total_xp: int     # XP total do membro
+    level: int  # nível atual
+    current: int  # XP acumulado dentro do nível atual
+    needed: int  # XP necessário para o próximo nível
+    total_xp: int  # XP total do membro
 
     @property
     def fraction(self) -> float:

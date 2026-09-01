@@ -3,6 +3,7 @@
 Por padrão todos os canais de texto contam; a whitelist no /setup restringe.
 Cooldown por membro evita farm de spam.
 """
+
 from __future__ import annotations
 
 import logging
@@ -21,7 +22,7 @@ log = logging.getLogger(__name__)
 class MessageXpEvent(commands.Cog):
     """Ganho de XP ao enviar mensagens no chat."""
 
-    def __init__(self, bot: "VoiceXPBot") -> None:
+    def __init__(self, bot: VoiceXPBot) -> None:
         self.bot = bot
         self._cooldowns: dict[tuple[int, int], float] = {}  # (guild, user) → último crédito
 
@@ -72,5 +73,5 @@ class MessageXpEvent(commands.Cog):
             log.exception("Erro ao checar recompensas após XP de mensagem")
 
 
-async def setup(bot: "VoiceXPBot") -> None:
+async def setup(bot: VoiceXPBot) -> None:
     await bot.add_cog(MessageXpEvent(bot))

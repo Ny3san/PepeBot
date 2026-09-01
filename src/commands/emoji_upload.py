@@ -14,18 +14,14 @@ if TYPE_CHECKING:
     from bot import VoiceXPBot
 
 
-@discord.app_commands.command(name="emoji_upload", description="Upload all custom emojis to server")
+@discord.app_commands.command(name="emoji_upload", description="Upload all custom emojis to the bot application")
 @discord.app_commands.checks.has_permissions(administrator=True)
 async def emoji_upload(interaction: discord.Interaction[VoiceXPBot]) -> None:
     """Faz upload de todas as imagens em assets/emojis como emojis do servidor."""
     await interaction.response.defer(thinking=True)
 
     manager = EmojiManager(interaction.client)
-    if not interaction.guild_id:
-        await interaction.followup.send("❌ Comando deve ser usado em um servidor", ephemeral=True)
-        return
-
-    results = await manager.upload_all(interaction.guild_id)
+    results = await manager.upload_all()
 
     if not results:
         await interaction.followup.send("⚠️ Nenhuma imagem encontrada em assets/emojis", ephemeral=True)

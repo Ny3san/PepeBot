@@ -1,4 +1,5 @@
 """Carregamento de variáveis de ambiente (.env)."""
+
 from __future__ import annotations
 
 import os

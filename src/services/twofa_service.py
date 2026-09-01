@@ -8,20 +8,21 @@ sem resposta.
 Este serviço só guarda os pedidos pendentes (em memória); a parte visual
 (DM, botões) vive em views/twofa.py.
 """
+
 from __future__ import annotations
 
 import time
 from dataclasses import dataclass
 from typing import Any
 
-REQUEST_TTL_S = 180     # pedido sem resposta expira em 3 minutos
+REQUEST_TTL_S = 180  # pedido sem resposta expira em 3 minutos
 
-Key = tuple[int, int]   # (guild_id, user_id)
+Key = tuple[int, int]  # (guild_id, user_id)
 
 
 @dataclass(slots=True)
 class PendingRequest:
-    payload: Any        # (interação do painel, ação a executar)
+    payload: Any  # (interação do painel, ação a executar)
     expires_at: float
 
 
