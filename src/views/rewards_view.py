@@ -199,6 +199,7 @@ def build_rewards(bot: VoiceXPBot, cfg: GuildConfig) -> SectionView:
             on_create_level_role,
             custom_id=cid("rw", "newlvl"),
             style=discord.ButtonStyle.primary,
+            emoji=get_emoji("edit_create_role"),
         ),
         button(f"Reset: {RESET_LABELS[cfg.reset_mode]}", on_reset_cycle, custom_id=cid("rw", "reset")),
         button("Voltar", nav_callback(bot, "config"), custom_id=cid("rw", "back"), emoji=get_emoji("voltar")),
@@ -274,11 +275,11 @@ def build_reward_edit(bot: VoiceXPBot, cfg: GuildConfig, role_id: int) -> Sectio
         await refresh(bot, interaction, "recompensas")
 
     view.add_row(
-        button("Requisitos", on_requirements, custom_id=cid("rwe", "req")),
+        button("Requisitos", on_requirements, custom_id=cid("rwe", "req"), emoji=get_emoji("edit_create_role")),
         button("Mensagem", on_message, custom_id=cid("rwe", "text")),
         button("Excluir", on_delete, custom_id=cid("rwe", "del"), style=discord.ButtonStyle.danger),
     )
-    view.add_row(button("Voltar", nav_callback(bot, "recompensas"), custom_id=cid("rwe", "back")))
+    view.add_row(button("Voltar", nav_callback(bot, "recompensas"), custom_id=cid("rwe", "back"), emoji=get_emoji("voltar")))
     return view
 
 

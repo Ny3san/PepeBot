@@ -34,8 +34,8 @@ class EmojiManager:
         with open(EMOJI_MAP_FILE, "w") as f:
             json.dump({name: str(emoji) for name, emoji in self.emojis.items()}, f, indent=2)
 
-    async def upload_all(self, guild_id: int) -> dict[str, str]:
-        """Upload de todas as imagens como emojis do servidor."""
+    async def upload_all(self, guild_id: int, skip_existing: bool = True) -> dict[str, str]:
+        """Upload de imagens como emojis (só faltantes se skip_existing=True)."""
         guild = self.bot.get_guild(guild_id)
         if not guild:
             raise ValueError(f"Guild {guild_id} não encontrada")
@@ -44,8 +44,17 @@ class EmojiManager:
         if not ASSETS_DIR.exists():
             return results
 
+        # Carrega emojis já existentes do servidor
+        existing_names = {e.name for e in guild.emojis} if skip_existing else set()
+
         for img_file in sorted(ASSETS_DIR.glob("*.png")):
             emoji_name = img_file.stem.replace("-", "_").replace(" ", "_")[:32]
+
+            # Se já existe no servidor, pula
+            if emoji_name in existing_names:
+                results[emoji_name] = f"⏭️ Já existe"
+                print(f"⏭️ {emoji_name} já existe no servidor")
+                continue
 
             try:
                 with open(img_file, "rb") as f:
